@@ -11,7 +11,7 @@
 [![Node](https://img.shields.io/badge/Node.js-20%2B-5a956c)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue)](LICENSE)
 
-[安装与启用](#安装与启用) · [数据接入](docs/INTEGRATION.md) · [设计规范](docs/DESIGN-SYSTEM.md) · [开发与验证](#开发与验证) · [验证记录](docs/VALIDATION.md)
+[界面预览](#界面预览) · [安装与启用](#安装与启用) · [数据接入](docs/INTEGRATION.md) · [设计规范](docs/DESIGN-SYSTEM.md) · [开发与验证](#开发与验证) · [验证记录](docs/VALIDATION.md)
 
 </div>
 
@@ -32,6 +32,35 @@ flowchart LR
     D --> E["首页卡片与圆环"]
     E --> F["桌面与手机界面"]
 ```
+
+## 界面预览
+
+以下截图来自 `1.0.20-r1` 的本地浏览器预览，使用示例数据。设备读数和菜单会随固件、插件与配置变化；登录页展示仓库附带的 Bing 回退壁纸，并保留原始署名。
+
+### 经典银白 · 浅色
+
+![经典银白浅色首页：移动网络、信号质量、频段聚合、系统状态与设备温度](docs/screenshots/dashboard-light.png)
+
+### 经典银白 · 深色
+
+![经典银白深色首页：5G-A 标记、CPU 与活动连接圆环、内存和存储状态](docs/screenshots/dashboard-dark.png)
+
+<details>
+<summary>查看节日外观 · 马年限定</summary>
+
+![马年限定首页：暖金配色、设备装饰与节日插画](docs/screenshots/dashboard-horse.png)
+
+</details>
+
+### 登录页
+
+![桌面登录页：壁纸背景、外观切换、登录表单与摄影作品署名](docs/screenshots/login-desktop.png)
+
+### 手机布局
+
+| 首页 | 登录页 |
+| :---: | :---: |
+| <img src="docs/screenshots/dashboard-mobile.png" alt="手机首页：卡片纵向排列、CPU 与活动连接圆环、底部快捷导航" width="280"> | <img src="docs/screenshots/login-mobile.png" alt="手机登录页：登录表单与两行壁纸署名" width="280"> |
 
 ## 核心能力
 
@@ -70,7 +99,7 @@ flowchart LR
 └── build/                  # 本地编译产物和预览，不提交 Git
 ```
 
-编译产物、预览截图、设备备份和本机诊断脚本不纳入版本控制。
+编译产物、测试生成的截图、设备备份和本机诊断脚本不纳入版本控制。README 的预览图保存在 `docs/screenshots/`，随文档维护。
 
 ## 本地快速开始
 
@@ -170,4 +199,10 @@ npm run preview
 
 主题代码使用 [Apache-2.0](LICENSE)。图片、运营商商标和 Bing 摄影作品的权利归原作者及权利人，来源与归属见 [NOTICE](NOTICE) 及资源目录内的来源说明。
 
-感谢 [OpenWrt LuCI](https://github.com/openwrt/luci)、[Lucide](https://lucide.dev/) 与相关设备插件的贡献者。
+感谢以下项目的作者与贡献者：
+
+- [OpenWrt LuCI](https://github.com/openwrt/luci)：提供主题模板、配置表单与认证流程。
+- [Argon Theme](https://github.com/jerrykuku/luci-theme-argon)：为导航、登录页、原生组件外观和响应式适配提供参考，详见 [Argon 组件审计](docs/ARGON-COMPONENT-AUDIT.md)。
+- [Lucide](https://lucide.dev/)：提供界面图标。
+
+也感谢 QModem 及相关设备插件的贡献者，为模组和设备数据接入提供基础。

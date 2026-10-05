@@ -7,7 +7,7 @@
 - 源码、模板、运行时资源、RPC/ACL、构建工具和测试在本仓库中独立维护。
 - 测试依赖由 `package.json` 声明，`pnpm-lock.yaml` 固定 Playwright 1.63.0；不引用其他项目的 `node_modules`。
 - 构建树与验证运行时通过 `OPENWRT_ROOT`、`UCODE_BIN`、`UCODE_LIB_DIR` 指定，不包含本机绝对路径。
-- 测试使用合成数据。设备诊断脚本、真实设备备份、构建产物和预览截图未提交到仓库。
+- 测试使用合成数据。设备诊断脚本、真实设备备份、构建产物和测试截图未提交到仓库；README 的精选界面预览图保存在 `docs/screenshots/`，同样使用示例数据。
 
 ## 已通过的检查
 
