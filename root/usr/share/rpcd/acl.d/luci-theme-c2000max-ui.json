@@ -1,0 +1,37 @@
+{
+  "luci-theme-c2000max-ui": {
+    "description": "Read-only C2000MAX dashboard",
+    "read": {
+      "ubus": {
+        "system": [
+          "info",
+          "board"
+        ],
+        "network.interface": [
+          "dump"
+        ],
+        "network.wireless": [
+          "status"
+        ],
+        "c2000max": [
+          "hardware_status",
+          "sim_status"
+        ],
+        "c2000max.ui": [
+          "metrics",
+          "modem",
+          "sensors",
+          "clients"
+        ],
+        "qmodem": [
+          "base_info",
+          "cell_info"
+        ]
+      },
+      "uci": [
+        "qmodem",
+        "c2000max_ui"
+      ]
+    }
+  }
+}
