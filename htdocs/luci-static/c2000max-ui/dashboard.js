@@ -114,8 +114,9 @@ function mount(root, url) {
   set('ram-total-detail',amount(committed)+' / '+amount(m.total));set('ram-used',amount(committed));set('ram-free',amount(available));
   for(const [key,value] of [['active',m.active],['cache',m.cache],['free',free]]) {
    set('ram-'+key+'-label',valid?amount(value):'—');
-   fillProgress($('#ram-'+key+'-bar'),valid?value/m.total*100:0);
+   if(key!=='free')fillProgress($('#ram-'+key+'-bar'),valid?value/m.total*100:0);
   }
+  $('#ram-bar').classList.toggle('unavailable',!valid);
   $('#ram-bar').setAttribute('aria-label',valid?'RAM：使用 '+amount(used)+'，空闲 '+amount(free):'RAM 数据未获取');
   [['flash',flash],['swap',swap]].forEach(([key,s])=>{
    const valid=Number.isFinite(s.total)&&s.total>0&&Number.isFinite(s.used);
@@ -152,6 +153,9 @@ function mount(root, url) {
   renderResources(D.resources(data.system));
   renderMetrics(data.metrics);
   set('uptime-value',D.uptime(data.system?.uptime));
+  const systemNote=data.system?.cacheStatus==='cached'?'数据更新稍慢，显示最近有效读数。':data.system?.cacheStatus==='missing'?'系统数据暂未取得，正在重试。':'';
+  set('resource-note',systemNote);$('#resource-note').hidden=!systemNote;
+  $('#uptime-value').title=systemNote;
   set('connection-heading',n.connected===null?'正在获取状态':n.connected?'连接正常':'上行未连接');
   set('connection-description',n.connected===null?'暂未取得设备状态':n.connected?'上行接口已连接':'请检查上行接口与拨号状态');
   set('wifi-name',n.ssid??'未获取无线信息');

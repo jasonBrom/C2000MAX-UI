@@ -1,13 +1,13 @@
 {
   "name": "c2000max-ui",
   "private": true,
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "C2000MAX LuCI theme source and development tests",
   "license": "Apache-2.0",
   "repository": "https://github.com/jasonBrom/C2000MAX-UI",
   "engines": { "node": ">=20" },
   "scripts": {
-    "test": "node tests/data.test.cjs && node tests/modem-refresh.test.cjs && node tests/live-temperature.test.cjs && node tests/theme-schedule.test.cjs",
+    "test": "node tests/data.test.cjs && node tests/system-refresh.test.cjs && node tests/modem-refresh.test.cjs && node tests/live-temperature.test.cjs && node tests/theme-schedule.test.cjs",
     "test:browser": "node tools/test-browser.cjs",
     "preview": "node tools/preview.cjs"
   },

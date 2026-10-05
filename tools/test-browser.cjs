@@ -16,6 +16,6 @@ function run(file){
    server.once('exit',code=>{clearTimeout(timer);reject(new Error('Preview server exited: '+code));});
    server.stdout.on('data',data=>{if(data.toString().includes('http://127.0.0.1:4179/')){clearTimeout(timer);resolve();}});
   });
-  for(const file of ['browser','view','status-layout','wallpaper','progress-animation'])run('tests/'+file+'.test.cjs');
+  for(const file of ['browser','view','status-layout','resource-layout','wallpaper','progress-animation'])run('tests/'+file+'.test.cjs');
  } finally {server.kill();}
 })().catch(e=>{console.error(e.message);process.exitCode=1;});

@@ -6,7 +6,7 @@
 
 从登录页和移动网络状态，到系统资源、温度与手机管理界面。
 
-[![Version](https://img.shields.io/badge/Version-1.0.20--r1-5e91d8)](Makefile)
+[![Version](https://img.shields.io/badge/Version-1.0.21--r1-5e91d8)](Makefile)
 [![LuCI](https://img.shields.io/badge/LuCI-ucode-41b8a4)](https://github.com/openwrt/luci)
 [![Node](https://img.shields.io/badge/Node.js-20%2B-5a956c)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue)](LICENSE)
@@ -22,7 +22,7 @@
 
 C2000MAX-UI 将设备登录、移动网络读数和系统状态整合到 LuCI 首页，并为原生配置页面提供统一的外观。主题源码、资源、构建工具和测试在本仓库中独立维护，可直接接入 OpenWrt 构建树。
 
-当前版本：`1.0.20-r1`。
+当前版本：`1.0.21-r1`。
 
 ```mermaid
 flowchart LR
@@ -35,7 +35,7 @@ flowchart LR
 
 ## 界面预览
 
-以下截图来自 `1.0.20-r1` 的本地浏览器预览，使用示例数据。设备读数和菜单会随固件、插件与配置变化；登录页展示仓库附带的 Bing 回退壁纸，并保留原始署名。
+以下截图来自 `1.0.21-r1` 的本地浏览器预览，使用示例数据。设备读数和菜单会随固件、插件与配置变化；登录页展示仓库附带的 Bing 回退壁纸，并保留原始署名。
 
 ### 经典银白 · 浅色
 
@@ -67,6 +67,7 @@ flowchart LR
 - 登录页：Bing 每日壁纸、原生 LuCI 认证、密码显示切换；手机壁纸署名最多两行，不遮挡表单。
 - 首页：运营商、5G / 5G-A、信号质量、主频段与载波聚合、模组型号/固件/温度/SIM。
 - 系统状态：CPU 占用率与活动连接数圆环、运行时间、CPU/Wi-Fi 温度、内存/RootFS/SWAP。
+- 系统读取短暂失败时保留近期有效读数，各资源组独立过期；RAM 空闲部分直接显示，只对已用部分做动画。
 - 模组数据独立刷新，短暂失败保留有效样本，过期数值显示缺失；接口缓慢不会阻塞其他卡片。
 - 浅色、深色、跟随系统，经典银白及节日外观；手机菜单搜索、抽屉和底部快捷导航。
 - 适配原生 LuCI 表单、表格、页签、下拉框、弹窗和保存/应用流程。
@@ -126,7 +127,7 @@ OPENWRT_ROOT=/path/to/openwrt bash tools/build-local.sh
 将匹配固件的 APK 上传到设备 `/tmp` 后运行：
 
 ```sh
-apk add --allow-untrusted --no-network /tmp/luci-theme-c2000max-ui-1.0.20-r1.apk
+apk add --allow-untrusted --no-network /tmp/luci-theme-c2000max-ui-1.0.21-r1.apk
 uci set luci.main.mediaurlbase='/luci-static/c2000max-ui'
 uci commit luci
 /etc/init.d/rpcd reload

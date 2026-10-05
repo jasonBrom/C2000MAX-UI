@@ -210,5 +210,11 @@ body.c2000-ui { padding-top:0; background:var(--page); color:var(--text); font:v
 }
 .c2000-ui .quick-access .thermal-card { width:100%; box-sizing:border-box; align-self:stretch; }
 .c2000-ui .td.cbi-section-actions > div > button { flex:0 0 auto; }
-@media(max-width:1279px) { .c2000-ui .quick-access .thermal-card { align-self:start; } }
+@media(min-width:701px) and (max-width:1279px) {
+ .c2000-ui .quick-access .thermal-card { align-self:stretch; display:flex; flex-direction:column; }
+ .c2000-ui .thermal-card .temperature-grid { flex:1; }
+ .c2000-ui .thermal-card .stat-tile { display:grid; grid-template-columns:max-content auto; column-gap:4px; align-content:center; }
+ .c2000-ui .thermal-card .stat-label { grid-column:1 / -1; }
+ .c2000-ui .thermal-card .stat-unit { align-self:end; }
+}
 .c2000-ui .cbi-dropdown[open] > ul.dropdown { transition:none; }

@@ -34,6 +34,32 @@ function resources(info={}) {
   swap:{total:swTotal!==null&&swTotal>=0?swTotal/MiB:null,used:swTotal!==null&&swFree!==null&&swFree>=0&&swFree<=swTotal?(swTotal-swFree)/MiB:null}
  };
 }
+// Preserve valid system groups across short failures without refreshing their age.
+function systemSnapshot(previous={},incoming,now=Date.now()) {
+ const reply=incoming&&typeof incoming==='object'&&!Array.isArray(incoming)?incoming:{};
+ const reboot=number(reply.uptime)!==null&&Number(reply.uptime)>=0&&number(previous.uptime)!==null&&Number(reply.uptime)<Number(previous.uptime);
+ const old=reboot?{}:previous, samples={}, result={};
+ const converted=resources(reply);
+ const valid={
+  uptime:number(reply.uptime)!==null&&Number(reply.uptime)>=0,
+  memory:converted.memory.total>0&&converted.memory.active!==null&&converted.memory.cache!==null,
+  root:converted.flash.total>0&&converted.flash.used!==null,
+  swap:converted.swap.total===0||(converted.swap.total>0&&converted.swap.used!==null)
+ };
+ let incomplete=incoming===undefined?!!old.incomplete:false;
+ for(const key of ['uptime','memory','root','swap']) {
+  if(valid[key]) {
+   result[key]=key==='uptime'?Number(reply[key]):{...reply[key]};samples[key]=now;
+  } else {
+   if(incoming!==undefined)incomplete=true;
+   const stamp=number(old.samples?.[key]);
+   if(stamp!==null&&now-stamp>=0&&now-stamp<=60000){result[key]=old[key];samples[key]=stamp;}
+  }
+ }
+ const count=Object.keys(samples).length;
+ const delayed=Object.values(samples).some(stamp=>now-stamp>30000);
+ return {...result,samples,incomplete,cacheStatus:count===0?'missing':incomplete||count<4||delayed?'cached':'fresh'};
+}
 function hardware(raw={},config={}) {
  const cpu=raw.cpu_sensor ? bounded(number(raw.cpu_temp)===null?null:Number(raw.cpu_temp)/1000,-40,150) : null;
  const wifiValues=(Array.isArray(raw.wifi_temps)?raw.wifi_temps:[]).map(v=>bounded(number(v.milli_c)===null?null:Number(v.milli_c)/1000,-40,150)).filter(v=>v!==null);
@@ -192,5 +218,5 @@ function uptime(seconds) {
  const d=Math.floor(n/86400),h=Math.floor(n/3600)%24,m=Math.floor(n/60)%60;
  return (d?d+' 天 ':'')+(h?h+' 小时 ': '')+m+' 分钟';
 }
-return Object.freeze({number,measured,bounded,resources,hardware,modem,modemSnapshot,network,metrics,uptime});
+return Object.freeze({number,measured,bounded,resources,systemSnapshot,hardware,modem,modemSnapshot,network,metrics,uptime});
 });

@@ -5,7 +5,7 @@
 'require poll';
 'require request';
 
-var systemInfo=rpc.declare({object:'system',method:'info'});
+var systemInfo=rpc.declare({object:'system',method:'info',reject:true,nobatch:true});
 var interfaceInfo=rpc.declare({object:'network.interface',method:'dump'});
 var wirelessInfo=rpc.declare({object:'network.wireless',method:'status',reject:true});
 var clientInfo=rpc.declare({object:'c2000max.ui',method:'clients',reject:true});
@@ -22,7 +22,7 @@ var modemInfo=rpc.declare({object:'c2000max.ui',method:'modem',params:['section'
 return view.extend({
  load: function() {
   // Shell and placeholders render immediately; optional plugins cannot block the view.
-  return request.get(L.env.media+'/dashboard.html?v='+encodeURIComponent(L.env.resource_version||'1.0.20-r1'),{cache:true}).then(function(response) {
+  return request.get(L.env.media+'/dashboard.html?v='+encodeURIComponent(L.env.resource_version||'1.0.21-r1'),{cache:true}).then(function(response) {
    if(!response.ok)throw new Error('Dashboard template unavailable');
    return response.text();
   });
@@ -45,20 +45,26 @@ return view.extend({
    started=true;
    return !stopped&&!document.hidden;
   }
+  function updateDashboard() {
+   state.system=window.C2000Data.systemSnapshot(state.system);
+   dashboard.update(state);
+  }
   // Prevent hung optional RPCs from queuing more calls. Successful groups update independently.
   function call(key,fn,done) {
    if(busy[key])return;
    busy[key]=true;
    Promise.resolve().then(fn).then(function(value) {
     if(stopped)return;
-    if(key==='modem')state.modem=window.C2000Data.modemSnapshot(state.modem,value||{});
+    if(key==='system')state.system=window.C2000Data.systemSnapshot(state.system,value??null);
+    else if(key==='modem')state.modem=window.C2000Data.modemSnapshot(state.modem,value||{});
     else state[key]=key==='sim'?{...value,receivedAt:Date.now()}:value;
-    dashboard.update(state);
+    updateDashboard();
     if(key==='metrics'&&!metricsPrimed){metricsPrimed=true;primeTimer=window.setTimeout(refreshMetrics,1000);}
    }).catch(function() {
     if(stopped)return;
-    if(key!=='modem'&&key!=='sim')state[key]=key==='wireless'?null:{};
-    dashboard.update(state);
+    if(key==='system')state.system=window.C2000Data.systemSnapshot(state.system,null);
+    else if(key!=='modem'&&key!=='sim')state[key]=key==='wireless'?null:{};
+    updateDashboard();
    }).finally(function(){busy[key]=false;if(!stopped&&done)done();});
   }
   function refreshMetrics() {
@@ -71,7 +77,7 @@ return view.extend({
   }
   function refreshModem() {
    if(!active()||!state.section)return;
-   dashboard.update(state); // Expire old fields even while a query is pending.
+   updateDashboard(); // Expire old fields even while a query is pending.
    refreshCache();
    if(Object.keys(reads).some(function(key){return busy[key];}))return;
    var key=Object.keys(reads).find(function(key){return Date.now()>=reads[key].next;});
@@ -85,6 +91,7 @@ return view.extend({
   }
   function refresh() {
    if(!active())return;
+   updateDashboard();
    call('system',systemInfo);call('network',interfaceInfo);call('wireless',wirelessInfo);
    if(Date.now()-lastSensors>20000){lastSensors=Date.now();call('sensors',sensorsInfo);}
    if(Date.now()-lastSim>30000){lastSim=Date.now();call('sim',simInfo);}
