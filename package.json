@@ -1,7 +1,7 @@
 {
   "name": "c2000max-ui",
   "private": true,
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "C2000MAX LuCI theme source and development tests",
   "license": "Apache-2.0",
   "repository": "https://github.com/jasonBrom/C2000MAX-UI",

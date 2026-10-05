@@ -22,7 +22,7 @@ var modemInfo=rpc.declare({object:'c2000max.ui',method:'modem',params:['section'
 return view.extend({
  load: function() {
   // Shell and placeholders render immediately; optional plugins cannot block the view.
-  return request.get(L.env.media+'/dashboard.html?v='+encodeURIComponent(L.env.resource_version||'1.0.21-r1'),{cache:true}).then(function(response) {
+  return request.get(L.env.media+'/dashboard.html?v='+encodeURIComponent(L.env.resource_version||'1.0.22-r1'),{cache:true}).then(function(response) {
    if(!response.ok)throw new Error('Dashboard template unavailable');
    return response.text();
   });

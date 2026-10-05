@@ -6,7 +6,7 @@
 
 从登录页和移动网络状态，到系统资源、温度与手机管理界面。
 
-[![Version](https://img.shields.io/badge/Version-1.0.21--r1-5e91d8)](Makefile)
+[![Version](https://img.shields.io/badge/Version-1.0.22--r1-5e91d8)](Makefile)
 [![LuCI](https://img.shields.io/badge/LuCI-ucode-41b8a4)](https://github.com/openwrt/luci)
 [![Node](https://img.shields.io/badge/Node.js-20%2B-5a956c)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue)](LICENSE)
@@ -22,7 +22,7 @@
 
 C2000MAX-UI 将设备登录、移动网络读数和系统状态整合到 LuCI 首页，并为原生配置页面提供统一的外观。主题源码、资源、构建工具和测试在本仓库中独立维护，可直接接入 OpenWrt 构建树。
 
-当前版本：`1.0.21-r1`。
+当前版本：`1.0.22-r1`。
 
 ```mermaid
 flowchart LR
@@ -35,7 +35,7 @@ flowchart LR
 
 ## 界面预览
 
-以下截图来自 `1.0.21-r1` 的本地浏览器预览，使用示例数据。设备读数和菜单会随固件、插件与配置变化；登录页展示仓库附带的 Bing 回退壁纸，并保留原始署名。
+以下截图来自本地浏览器预览，使用示例数据。设备读数和菜单会随固件、插件与配置变化；登录页展示仓库附带的 Bing 回退壁纸，并保留原始署名。
 
 ### 经典银白 · 浅色
 
@@ -127,7 +127,7 @@ OPENWRT_ROOT=/path/to/openwrt bash tools/build-local.sh
 将匹配固件的 APK 上传到设备 `/tmp` 后运行：
 
 ```sh
-apk add --allow-untrusted --no-network /tmp/luci-theme-c2000max-ui-1.0.21-r1.apk
+apk add --allow-untrusted --no-network /tmp/luci-theme-c2000max-ui-1.0.22-r1.apk
 uci set luci.main.mediaurlbase='/luci-static/c2000max-ui'
 uci commit luci
 /etc/init.d/rpcd reload

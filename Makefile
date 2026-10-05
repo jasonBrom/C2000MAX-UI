@@ -7,7 +7,7 @@ LUCI_MINIFY_JS:=0
 PKG_LICENSE:=Apache-2.0
 PKG_URL:=https://github.com/jasonBrom/C2000MAX-UI
 PKG_MAINTAINER:=jasonBrom
-PKG_VERSION:=1.0.21
+PKG_VERSION:=1.0.22
 PKG_RELEASE:=1
 
 # Normalize a checkout copied from Windows before LuCI packages its files.
