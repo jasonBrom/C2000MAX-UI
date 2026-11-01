@@ -24,6 +24,7 @@
 {% if (node?.css): %}<link rel="stylesheet" href="{{ resource }}/{{ node.css }}">{% endif %}
 {% if (css): %}<style>{{ css }}</style>{% endif %}
 <link rel="stylesheet" href="{{ media }}/density.css?v=1.0.22-r1">
+<link rel="stylesheet" href="{{ media }}/liquid.css?v=liquidGL-1">
 <script src="{{ dispatcher.build_url('admin/translations', dispatcher.lang) }}"></script>
 <script src="{{ resource }}/cbi.js"></script>
 <script src="{{ media }}/data.js?v=1.0.22-r1"></script>

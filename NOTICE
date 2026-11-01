@@ -6,6 +6,10 @@ Upstream: https://github.com/openwrt/luci
 Argon component research: https://github.com/jerrykuku/luci-theme-argon
 This package does not redistribute Argon source code or claim Argon affiliation.
 
+liquidGL v3.0.0, Copyright (c) NaughtyDuk, is distributed under the MIT License.
+Source: https://github.com/naughtyduk/liquidGL/tree/88f681ab7035fd55b04f63edff1841e32c4199e9
+See htdocs/luci-static/c2000max-ui/liquidGL.LICENSE.txt. No upstream demo assets are included.
+
 Visual assets:
 - c2000max-front.png: existing C2000MAX prototype asset derived from user-supplied references.
 - reference-art.png: user-supplied page artwork reused by the prototype.

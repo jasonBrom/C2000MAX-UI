@@ -1,0 +1,63 @@
+/* Glass surfaces retain opaque fallbacks when transparency is unavailable. */
+:root {
+  --glass-card: rgba(255, 255, 255, .84);
+  --glass-panel: rgba(245, 249, 255, .90);
+  --glass-edge: rgba(255, 255, 255, .85);
+  --glass-shadow: 0 12px 36px rgba(39, 64, 97, .09), inset 0 1px 0 rgba(255, 255, 255, .9);
+}
+:root[data-theme="dark"] {
+  --glass-card: rgba(30, 37, 48, .92);
+  --glass-panel: rgba(24, 31, 42, .94);
+  --glass-edge: rgba(210, 226, 255, .14);
+  --glass-shadow: 0 12px 36px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+body.c2000-ui {
+  background: radial-gradient(ellipse at 82% 0%, rgba(146, 189, 242, .28), transparent 40%),
+    radial-gradient(ellipse at 14% 70%, rgba(158, 207, 217, .2), transparent 45%), var(--page);
+  background-attachment: fixed;
+}
+[data-theme="dark"] body.c2000-ui {
+  background: radial-gradient(ellipse at 82% 0%, rgba(72, 108, 157, .19), transparent 42%),
+    radial-gradient(ellipse at 14% 70%, rgba(45, 109, 118, .12), transparent 45%), var(--page);
+  background-attachment: fixed;
+}
+.c2000-ui .ui-card, .c2000-ui .cbi-section,
+.c2000-ui .modal, .c2000-ui dialog, .c2000-ui .account-menu,
+.c2000-ui .topbar .theme-picker > .theme-control {
+  background: var(--glass-card);
+  border-color: var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+  border-radius: 18px;
+}
+.c2000-ui .cbi-section .cbi-section { background: var(--surface-soft); box-shadow: none; }
+.c2000-ui .sidebar, .c2000-ui .mobile-nav { background: var(--glass-panel); }
+.c2000-ui .sidebar { border-right-color: var(--glass-edge); }
+.c2000-ui .mobile-nav { border-top-color: var(--glass-edge); }
+.c2000-ui .sidebar > :not(.liquid-pane), .c2000-ui .mobile-nav > :not(.liquid-pane) { position: relative; z-index: 1; }
+.liquid-pane { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.c2000-ui .ui-button, .c2000-ui .cbi-button, .c2000-ui .btn,
+.c2000-ui .icon-button, .login-submit { border-radius: 12px; }
+.c2000-ui .tabs, .c2000-ui .cbi-tabmenu, .c2000-ui .menu-search { border-radius: 14px; }
+.login-card { border-radius: 26px; box-shadow: 0 24px 80px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.7); }
+.login-field input { border-radius: 12px; }
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .c2000-ui .sidebar, .c2000-ui .mobile-nav, .c2000-ui .modal,
+  .c2000-ui .account-menu, .c2000-ui .topbar .theme-picker > .theme-control {
+    -webkit-backdrop-filter: blur(18px) saturate(135%);
+    backdrop-filter: blur(18px) saturate(135%);
+  }
+}
+.c2000-ui [data-liquid-active] { -webkit-backdrop-filter: none; backdrop-filter: none; }
+@media (max-width: 700px) {
+  .c2000-ui .mobile-nav { inset: auto 10px max(8px, env(safe-area-inset-bottom)); min-height: 68px; padding: 6px; border: 1px solid var(--glass-edge); border-radius: 22px; box-shadow: var(--glass-shadow); overflow: hidden; }
+  .c2000-ui .mobile-nav > :not(.liquid-pane) { min-height: 54px; }
+  .c2000-ui .mobile-nav .liquid-pane { border-radius: inherit; }
+}
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  .c2000-ui .ui-card, .c2000-ui .cbi-section, .c2000-ui .modal,
+  .c2000-ui .sidebar, .c2000-ui .mobile-nav, .c2000-ui .account-menu,
+  .c2000-ui .topbar .theme-picker > .theme-control, .login-card {
+    background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none;
+  }
+  .liquid-pane { display: none; }
+}

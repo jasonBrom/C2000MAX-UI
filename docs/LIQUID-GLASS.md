@@ -1,0 +1,7 @@
+# Liquid Glass experimental branch
+
+This branch adds translucent surfaces to the dashboard, LuCI controls and login page. The fixed desktop sidebar and mobile navigation use [liquidGL](https://github.com/naughtyduk/liquidGL) v3.0.0 (upstream commit `88f681ab7035fd55b04f63edff1841e32c4199e9`); its source and MIT license are bundled locally, so the router does not depend on a CDN. The upstream demo assets are not included.
+
+The shader is loaded on idle only for desktop or phone navigation. It uses a half-resolution snapshot, no animated highlights, tilt or fluid tracking, and only one lens at a time. Cards and forms use CSS surfaces instead of continuously rasterising changing status data. The shader is torn down when the page is hidden, the layout changes or reduced motion/transparency is requested. Save-Data, devices reporting at most 2 GiB of memory, unsupported graphics and forced colors use the CSS appearance. CSS blur itself is optional; solid surfaces remain available for reduced transparency and forced colors.
+
+Run `npm test` and, after rendering templates as described in the README, `npm run test:browser`. The liquid browser test checks navigation, layout changes, reduced-motion cleanup and the no-WebGL fallback. Test on the target router and representative clients before release: browser/GPU support, actual frame rate, power use, long LuCI pages and device memory have not been benchmarked by these checks.
