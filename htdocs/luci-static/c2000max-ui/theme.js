@@ -70,7 +70,8 @@
   }
   function closePickers(restoreFocus = false) {
     document.querySelectorAll('[data-theme-toggle][aria-expanded="true"]').forEach(toggle => {
-      toggle.setAttribute('aria-expanded', 'false');
+      const hide=()=>toggle.setAttribute('aria-expanded','false');
+      if(window.C2000Motion)C2000Motion.visibility(toggle.parentElement.querySelector('.theme-control'),false,hide);else hide();
       if (restoreFocus && compact.matches) toggle.focus();
     });
   }
@@ -90,8 +91,11 @@
     if (toggle) {
       const opening = toggle.getAttribute('aria-expanded') !== 'true';
       closePickers();
-      toggle.setAttribute('aria-expanded', String(opening));
-      if (opening) toggle.parentElement.querySelector('[aria-pressed="true"]').focus();
+      if (opening) {
+        const show=()=>toggle.setAttribute('aria-expanded','true');
+        if(window.C2000Motion)C2000Motion.visibility(toggle.parentElement.querySelector('.theme-control'),true,show);else show();
+        toggle.parentElement.querySelector('[aria-pressed="true"]').focus();
+      }
       return;
     }
     const button = event.target.closest('[data-theme-choice]');

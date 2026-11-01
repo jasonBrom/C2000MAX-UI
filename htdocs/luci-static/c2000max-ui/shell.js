@@ -11,10 +11,14 @@ document.querySelectorAll('.mobile-nav [data-panel]').forEach(button => {
  button.replaceWith(link);
 });
 const account = $('#account-button'), menu = $('#account-menu');
-function close() { if (menu) menu.hidden = true; account?.setAttribute('aria-expanded','false'); }
-account?.addEventListener('click',() => { const opening = menu.hidden; menu.hidden = !opening; account.setAttribute('aria-expanded',String(opening)); });
+function setAccount(opening) {
+ const update=()=>{menu.hidden=!opening;account.setAttribute('aria-expanded',String(opening));};
+ if(window.C2000Motion)C2000Motion.visibility(menu,opening,update);else update();
+}
+function close() { if (menu && account?.getAttribute('aria-expanded')==='true') setAccount(false); }
+account?.addEventListener('click',() => setAccount(account.getAttribute('aria-expanded')!=='true'));
 $('#logout-button')?.addEventListener('click',() => location.assign(L.url('admin','logout')));
-document.addEventListener('click',e => { if (!e.target.closest('.account,.account-menu')) close(); });
+document.addEventListener('click',e => { const path=e.composedPath();if(!path.includes(account)&&!path.includes(menu))close(); });
 document.addEventListener('keydown',e => { if (e.key === 'Escape') close(); });
 const indicators=document.querySelector('#indicators');
 function labelRefresh(){indicators?.querySelectorAll('[data-indicator="poll-status"]').forEach(el=>{el.setAttribute('role','button');el.tabIndex=0;el.setAttribute('aria-label',el.getAttribute('data-style')==='active'?'暂停自动刷新':'恢复自动刷新');el.title=el.getAttribute('aria-label');

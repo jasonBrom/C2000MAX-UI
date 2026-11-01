@@ -21,16 +21,22 @@ async function ready(page, selector) {
         await page.evaluate(t => { C2000Theme.setSkin('max'); C2000Theme.set(t); }, theme);
         const panel = width <= 700 ? '.mobile-nav' : '.sidebar';
         await ready(page, panel);
-        assert.equal(await page.locator(panel + ' > .liquid-pane').count(), 1);
-        assert.equal(await page.evaluate(() => window.__liquidGLRenderer__.snapshotTarget.id), 'liquid-scene');
-        assert.equal(await page.locator('#liquid-scene input').count(), 0);
-        assert.ok(await page.locator('#liquid-scene').evaluate(el => el.scrollHeight <= innerHeight + 1));
+        const paneId = await page.locator(panel).getAttribute('data-glass-pane');
+        assert.equal(await page.locator('#' + paneId).count(), 1);
+        assert.equal(await page.evaluate(() => window.__liquidGLRenderer__.snapshotTarget.tagName), 'BODY');
+        assert.equal(await page.locator('input:not([data-liquid-ignore])').count(), 0);
+        assert.ok(await page.evaluate(() => {
+          const r = window.__liquidGLRenderer__;
+          return document.body.scrollWidth * document.body.scrollHeight * r._snapshotResolution ** 2 <= 2000001;
+        }));
+        assert.equal(await page.locator('.liquid-overlay canvas').count(), 1);
         if (width === 390) {
           await page.getByRole('button', { name: '菜单', exact: true }).click();
           await ready(page, '.sidebar');
           await page.locator('#close-menu').click();
-          await page.waitForFunction(() => !document.querySelector('.sidebar > .liquid-pane'));
-          const selected = await page.locator('.mobile-nav .active').evaluate(el => ({ bg: getComputedStyle(el).backgroundColor, width: el.getBoundingClientRect().width }));
+          await page.waitForFunction(() => !document.querySelector('.sidebar').hasAttribute('data-glass-pane'));
+          await page.waitForFunction(() => getComputedStyle(document.querySelector('.sidebar')).visibility === 'hidden');
+          const selected = await page.locator('.liquid-selection').evaluate(el => ({ bg: getComputedStyle(el).backgroundColor, width: el.getBoundingClientRect().width }));
           assert.notEqual(selected.bg, 'rgba(0, 0, 0, 0)');
           assert.ok(selected.width >= 44);
         }
@@ -52,12 +58,12 @@ async function ready(page, selector) {
     await page.getByRole('button', { name: '管理员菜单', exact: true }).click();
     await ready(page, '.account-menu');
     await page.getByRole('button', { name: '管理员菜单', exact: true }).click();
-    await page.waitForFunction(() => !document.querySelector('.account-menu > .liquid-pane'));
+    await page.waitForFunction(() => !document.querySelector('.account-menu').hasAttribute('data-glass-pane'));
     await page.locator('[data-theme-toggle]').click();
     await ready(page, '.theme-control');
     await page.locator('[data-theme-choice="light"]').click();
     await ready(page, '.sidebar');
-    await page.waitForFunction(() => !document.querySelector('.theme-control > .liquid-pane'));
+    await page.waitForFunction(() => !document.querySelector('.theme-control').hasAttribute('data-glass-pane'));
     await page.evaluate(() => {
       const dialog = document.createElement('dialog');
       dialog.id = 'glass-test-dialog';

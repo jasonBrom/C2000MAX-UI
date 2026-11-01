@@ -5,8 +5,9 @@
 </main>
 {% include('themes/c2000max-ui/mobile') %}
 <script src="{{ media }}/menu.js?v=1.0.22-r1"></script>
-<script src="{{ media }}/shell.js?v=1.0.22-r1"></script>
-<script src="{{ media }}/liquid.js?v=liquidGL-2" defer></script>
+<script src="{{ media }}/shell.js?v=liquidGL-3"></script>
+<script src="{{ media }}/liquid-motion.js?v=liquidGL-3"></script>
+<script src="{{ media }}/liquid.js?v=liquidGL-3" defer></script>
 {% endif %}
 </body>
 </html>

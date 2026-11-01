@@ -4,6 +4,7 @@ const input=document.querySelector('#luci_password'),button=document.querySelect
 button?.addEventListener('click',()=>{
  const visible=input.type==='password';input.type=visible?'text':'password';
  button.setAttribute('aria-pressed',String(visible));button.setAttribute('aria-label',visible?'隐藏密码':'显示密码');
+ button.querySelector('use')?.setAttribute('href',visible?'#eye-off':'#eye');
 });
 const image=document.querySelector('.login-wallpaper');
 const credit=document.querySelector('.wallpaper-credit a');

@@ -98,10 +98,10 @@ function mount(root, url) {
  let slide=0;
  const slideTimer=window.setInterval(()=>{
   if(!root.isConnected){window.clearInterval(slideTimer);return;}
-  if(document.hidden||root.querySelector('.story-card:hover,.story-card:focus-within'))return;
+  if(document.hidden||matchMedia('(prefers-reduced-motion:reduce)').matches||root.querySelector('.story-card:hover,.story-card:focus-within'))return;
   const selected=root.querySelector('[data-slide].selected');
   slide=(Number(selected?.dataset.slide??slide)+1)%baseSlides.length;
-  root.querySelector('[data-slide="'+slide+'"]').click();
+  showSlide(slide);
  },3000);
  function renderResources(data) {
   const {memory:m,flash,swap}=data;

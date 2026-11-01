@@ -5,6 +5,7 @@
  * Author: NaughtyDuk© – https://liquidgl.naughtyduk.com
  * Licence: MIT
  * Version: v3.0.0
+ * C2000MAX patch: optional snapshotBlur caches a smooth blur before texture upload.
  */
 
 (() => {
@@ -5461,9 +5462,11 @@ fn fs() -> @location(0) vec4<f32> {
       snapshotResolution = 1.0,
       engine = "auto",
       anchor = document.body,
+      snapshotBlur = 0,
     ) {
       this._anchor = anchor;
       this._engine = engine;
+      this._snapshotBlur = snapshotBlur;
       this._destroyed = false;
       this._cleanups = [];
       this._naughtyQueued = false;
@@ -5773,7 +5776,8 @@ fn fs() -> @location(0) vec4<f32> {
           };
 
           const naughtyIgnore = (el) =>
-            ignoreElementsFunc(el) || lensElements.has(el);
+            ignoreElementsFunc(el) || lensElements.has(el) ||
+            el.matches?.('input,textarea,select,[contenteditable]:not([contenteditable="false"])');
 
           let backgroundColor = null;
           if (
@@ -5790,7 +5794,7 @@ fn fs() -> @location(0) vec4<f32> {
             const [r, g, b, a] = color || [1, 1, 1, 1];
             backgroundColor = `rgb(${[r, g, b].map((channel) => (channel * a + 1 - a) * 255).join(",")})`;
           }
-          const snapCanvas = await NaughtyDOM.rasteriseAsync(
+          let snapCanvas = await NaughtyDOM.rasteriseAsync(
             this.snapshotTarget,
             {
               width: fullW,
@@ -5803,6 +5807,19 @@ fn fs() -> @location(0) vec4<f32> {
 
           if (this._destroyed || generation !== (this._captureGeneration || 0))
             return false;
+          if (this._snapshotBlur > 0) {
+            const smooth = document.createElement("canvas");
+            smooth.width = snapCanvas.width;
+            smooth.height = snapCanvas.height;
+            const ctx = smooth.getContext("2d");
+            if (ctx && "filter" in ctx) {
+              ctx.fillStyle = backgroundColor || getComputedStyle(this.snapshotTarget).backgroundColor;
+              ctx.fillRect(0, 0, smooth.width, smooth.height);
+              ctx.filter = `blur(${this._snapshotBlur * scale}px)`;
+              ctx.drawImage(snapCanvas, 0, 0);
+              snapCanvas = smooth;
+            }
+          }
           if (!this._uploadTexture(snapCanvas, !!backgroundColor)) {
             throw new Error("liquidGL: snapshot could not be uploaded.");
           }
@@ -8707,6 +8724,7 @@ fn fs() -> @location(0) vec4<f32> {
       target: ".liquidGL",
       snapshot: "body",
       resolution: 2.0,
+      snapshotBlur: 0,
       engine: "auto",
       zIndex: undefined,
       content: undefined,
@@ -8732,6 +8750,7 @@ fn fs() -> @location(0) vec4<f32> {
       on: {},
     };
     const options = { ...defaults, ...userOptions };
+    options.snapshotBlur = Math.max(0, Math.min(12, Number(options.snapshotBlur) || 0));
     options.tint = parseTintColor(options.tint);
     if (
       options.zIndex != null &&
@@ -8821,6 +8840,7 @@ fn fs() -> @location(0) vec4<f32> {
         (candidate) =>
           candidate.snapshotTarget === snapshotTarget &&
           candidate._anchor === anchor &&
+          candidate._snapshotBlur === options.snapshotBlur &&
           candidate._zIndex === zIndex,
       );
       if (!renderer) {
@@ -8829,6 +8849,7 @@ fn fs() -> @location(0) vec4<f32> {
           options.resolution,
           options.engine,
           anchor,
+          options.snapshotBlur,
         );
         renderer._zIndex = zIndex;
         renderer.useExternalTicker =
