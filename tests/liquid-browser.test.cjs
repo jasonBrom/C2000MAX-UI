@@ -20,6 +20,15 @@ const { chromium } = require('playwright');
     await page.getByRole('button', { name: '管理员菜单' }).click();
     assert.equal(await page.locator('#account-menu').isVisible(), true);
     await page.screenshot({ path: 'build/preview/liquid-desktop.png' });
+    const beforeTheme = await page.evaluateHandle(() => window.__liquidGLRenderer__);
+    const hadGPU = await page.evaluate(() => !!window.__liquidGLRenderer__);
+    await page.evaluate(() => window.C2000Theme.set('dark'));
+    if (hadGPU) {
+      await page.waitForFunction(previous => window.__liquidGLRenderer__ && window.__liquidGLRenderer__ !== previous, beforeTheme);
+      await page.waitForFunction(() => document.querySelector('.sidebar').hasAttribute('data-liquid-active'));
+      assert.equal(await page.locator('.sidebar canvas').count(), 1);
+    }
+    await beforeTheme.dispose();
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.waitForFunction(() => !window.__liquidGLRenderer__);
     assert.equal(await page.locator('.sidebar canvas').count(), 0);

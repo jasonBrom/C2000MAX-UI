@@ -59,6 +59,13 @@
     else if (query.addListener) query.addListener(start);
   });
   document.addEventListener('visibilitychange', start);
+  var appearance = document.documentElement.dataset.theme + ':' + document.documentElement.dataset.skin;
+  new MutationObserver(function () {
+    var next = document.documentElement.dataset.theme + ':' + document.documentElement.dataset.skin;
+    if (next === appearance) return;
+    appearance = next;
+    start(); // Rebuild the snapshot when its background palette changes.
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-skin'] });
   window.addEventListener('pagehide', destroy);
   window.addEventListener('pageshow', function (event) { if (event.persisted) start(); });
   if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 2000 });
