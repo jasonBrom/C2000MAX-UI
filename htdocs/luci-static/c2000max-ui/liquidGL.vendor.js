@@ -7,6 +7,7 @@
  * Version: v3.0.0
  * C2000MAX patch: optional snapshotBlur caches a smooth blur before texture upload.
  * C2000MAX patch: animateSpecular:false keeps the highlight without continuous redraw.
+ * C2000MAX patch: optional opacity follows the real foreground panel during transitions.
  */
 
 (() => {
@@ -6209,6 +6210,7 @@ fn fs() -> @location(0) vec4<f32> {
             options.frost,
             options.specular,
             options.animateSpecular,
+            options.opacity,
             options.magnify,
             options.shadow,
             options.tint,
@@ -6807,8 +6809,8 @@ fn fs() -> @location(0) vec4<f32> {
         frost: lens.options.frost,
         radius: lens.radiusGl,
         specular: lens.options.specular ? 1 : 0,
-        revealProgress: lens._revealProgress || 1.0,
-        revealType: lens.revealTypeIndex || 0,
+        revealProgress: (lens._revealProgress ?? 1.0) * unitOption(lens.options.opacity, 1),
+        revealType: lens.revealTypeIndex || (unitOption(lens.options.opacity, 1) < 1 ? 1 : 0),
         magnify: mag,
         tiltX: lens.tiltX || 0,
         tiltY: lens.tiltY || 0,
@@ -8739,6 +8741,7 @@ fn fs() -> @location(0) vec4<f32> {
       shadow: true,
       specular: true,
       animateSpecular: true,
+      opacity: 1,
       reveal: "fade",
       tilt: false,
       tiltFactor: 5,

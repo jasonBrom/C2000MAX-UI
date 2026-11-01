@@ -40,7 +40,14 @@
       const selected = toggle.parentElement.querySelector('[data-theme-choice="' + preference + '"]');
       if(!selected)return;
       const name = selected.getAttribute('aria-label');
-      toggle.replaceChildren(selected.querySelector('svg').cloneNode(true));
+      const glyph = selected.querySelector('svg'), icon = toggle.querySelector('svg');
+      // Keep the live SVG (and its spring state) when the theme or skin changes.
+      if (!icon) toggle.replaceChildren(glyph.cloneNode(true));
+      else {
+        const next = glyph.querySelector('use'), current = icon.querySelector('use');
+        if (next && current) current.setAttribute('href', next.getAttribute('href'));
+        else icon.replaceChildren(...[...glyph.childNodes].map(node => node.cloneNode(true)));
+      }
       toggle.setAttribute('aria-label', skinNames[skin]+' · 外观模式：' + name);
       toggle.title = skinNames[skin]+' · 外观模式：' + name;
     });

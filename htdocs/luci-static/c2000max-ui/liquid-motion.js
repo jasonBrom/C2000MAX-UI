@@ -2,8 +2,9 @@
 (function () {
   'use strict';
   var reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  var running = new Map(), decorated = new WeakSet(), themeIcons = new WeakMap(), visibility = new WeakMap(), pending = 0;
-  var spring = 'cubic-bezier(.2,.8,.2,1)', pressed = null, pressedAnimation = null, symbolChangedByUser = false;
+  var running = new Map(), decorated = new WeakSet(), visibility = new WeakMap(), pending = 0;
+  var spring = 'cubic-bezier(.2,.8,.2,1)', pressed = null;
+  var springs = new Map(), springRaf = 0, springTime = 0;
   function signal() { document.dispatchEvent(new CustomEvent('c2000-motion')); }
   function stop(element) {
     var record = running.get(element);
@@ -11,6 +12,10 @@
     running.delete(element); record.animation.cancel(); record.cleanup?.();
   }
   function play(element, frames, duration, cleanup) {
+    if (running.has(element)) {
+      var current = getComputedStyle(element);
+      Object.keys(frames[0]).forEach(function (property) { if (property in current) frames[0][property] = current[property]; });
+    }
     stop(element);
     if (reduced.matches || !element.animate) { cleanup?.(); return; }
     var animation = element.animate(frames, { duration: duration, easing: spring });
@@ -22,11 +27,12 @@
   }
   function setVisible(panel, opening, mutate) {
     if (!panel) { mutate(); return; }
+    var style = getComputedStyle(panel), display = style.display;
+    var from = running.has(panel) ? { opacity: style.opacity, transform: style.transform } : null;
     stop(panel);
-    var display = getComputedStyle(panel).display;
     if (opening) {
       mutate();
-      play(panel, [{ opacity: 0, transform: 'translateY(7px) scale(.97)' }, { opacity: 1, transform: 'none' }], 240);
+      play(panel, [from || { opacity: 0, transform: 'translateY(7px) scale(.97)' }, { opacity: 1, transform: 'none' }], 240);
       return;
     }
     if (reduced.matches || !panel.animate || display === 'none') { mutate(); return; }
@@ -34,18 +40,52 @@
     panel.style.setProperty('--motion-display', display);
     panel.setAttribute('data-motion-exit', '');
     mutate(); panel.inert = true; panel.setAttribute('aria-hidden', 'true');
-    play(panel, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(4px) scale(.98)' }], 160, function () {
+    play(panel, [from || { opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(4px) scale(.98)' }], 160, function () {
       panel.removeAttribute('data-motion-exit'); panel.style.removeProperty('--motion-display'); panel.inert = oldInert;
       if (oldAria === null) panel.removeAttribute('aria-hidden'); else panel.setAttribute('aria-hidden', oldAria);
     });
   }
-  function decorate() {
-    document.querySelectorAll('.theme-toggle').forEach(function (button) {
-      var icon = button.querySelector('svg.icon'), previous = themeIcons.get(button);
-      if (icon && previous && icon !== previous && symbolChangedByUser) play(icon, [{ opacity: 0, transform: 'rotate(-20deg) scale(.94)' }, { opacity: 1, transform: 'none' }], 220);
-      if (icon) themeIcons.set(button, icon);
+  function restoreScale(element, state) {
+    if (state.original) element.style.setProperty('scale', state.original, state.priority); else element.style.removeProperty('scale');
+    element.removeAttribute('data-motion-active');
+  }
+  function stepSprings(now) {
+    springRaf = 0;
+    var dt = Math.min(.032, Math.max(.001, (now - springTime) / 1000)), moving = false;
+    springTime = now;
+    springs.forEach(function (state, element) {
+      if (!element.isConnected) { restoreScale(element, state); springs.delete(element); return; }
+      var remaining = dt;
+      while (remaining > 0) {
+        var step = Math.min(remaining, 1 / 120), damping = state.target < 1 ? 48 : 28;
+        state.velocity += ((state.target < 1 ? 900 : 650) * (state.target - state.position) - damping * state.velocity) * step;
+        state.position += state.velocity * step; remaining -= step;
+      }
+      if (Math.abs(state.position - state.target) < .0001 && Math.abs(state.velocity) < .001) {
+        state.position = state.target; state.velocity = 0;
+        element.removeAttribute('data-motion-active');
+        if (state.target === 1) { restoreScale(element, state); springs.delete(element); return; }
+      } else moving = true;
+      element.style.scale = String(state.position);
     });
-    symbolChangedByUser = false;
+    signal();
+    if (moving) springRaf = requestAnimationFrame(stepSprings);
+  }
+  function springTo(element, target, impulse) {
+    if (reduced.matches) return;
+    var state = springs.get(element);
+    if (!state) {
+      state = { position: parseFloat(getComputedStyle(element).scale) || 1, velocity: 0, target: target,
+        original: element.style.getPropertyValue('scale'), priority: element.style.getPropertyPriority('scale') };
+      springs.set(element, state);
+    }
+    // Retarget the same spring. Position and velocity survive repeated presses and reversals.
+    state.target = target; state.velocity = Math.max(-2, Math.min(2, state.velocity + (impulse || 0)));
+    element.setAttribute('data-motion-active', '');
+    if (!springRaf) { springTime = performance.now(); springRaf = requestAnimationFrame(stepSprings); }
+    signal();
+  }
+  function decorate() {
     document.querySelectorAll('[data-menu-toggle] svg.icon use').forEach(function (use) {
       var next = use.closest('[data-menu-toggle]').getAttribute('aria-expanded') === 'true' ? '#close' : '#menu';
       if (use.getAttribute('href') !== next) use.setAttribute('href', next);
@@ -76,8 +116,8 @@
       indicator = document.createElement('span'); indicator.className = 'liquid-selection';
       indicator.setAttribute('aria-hidden', 'true'); nav.prepend(indicator);
     }
-    var origin = nav.getBoundingClientRect(), rect = selected.getBoundingClientRect();
-    Object.assign(indicator.style, { width: rect.width + 'px', height: rect.height + 'px', transform: 'translate3d(' + (rect.left - origin.left) + 'px,' + (rect.top - origin.top) + 'px,0)' });
+    // Layout coordinates exclude the transient press scale, so the selection cannot freeze mid-press.
+    Object.assign(indicator.style, { width: selected.offsetWidth + 'px', height: selected.offsetHeight + 'px', transform: 'translate3d(' + selected.offsetLeft + 'px,' + selected.offsetTop + 'px,0)' });
     if (!nav.classList.contains('has-glass-selection')) nav.classList.add('has-glass-selection');
     if (!indicator.hasAttribute('data-selection-ready')) requestAnimationFrame(function () { indicator.setAttribute('data-selection-ready', ''); });
   }
@@ -99,32 +139,30 @@
   document.addEventListener('keydown', arm, { once: true, capture: true });
   document.addEventListener('pointerdown', function (event) {
     var target = control(event);
-    if (!target || target.disabled || target.closest('[inert]') || event.button !== 0) return;
-    pressed = target;
-    if (!reduced.matches && target.animate) {
-      stop(target);
-      pressedAnimation?.cancel();
-      pressedAnimation = target.animate([{ transform: 'none' }, { transform: 'scale(.94)' }], { duration: 100, easing: spring, fill: 'forwards' });
-      signal();
-    }
+    if (!target || target.disabled || target.closest('[inert]') || event.button !== 0 || event.isPrimary === false) return;
+    if (pressed) springTo(pressed.element, 1);
+    pressed = { element: target, pointerId: event.pointerId };
+    springTo(target, .94);
   }, { passive: true });
-  function release() {
-    if (!pressed) return;
-    var target = pressed; pressed = null;
-    pressedAnimation?.cancel(); pressedAnimation = null;
-    play(target, [{ transform: 'scale(.94)' }, { transform: 'scale(1.025)', offset: .7 }, { transform: 'none' }], 260);
+  function release(event) {
+    if (!pressed || event.pointerId !== pressed.pointerId) return;
+    var target = pressed.element; pressed = null;
+    springTo(target, 1);
   }
   document.addEventListener('pointerup', release, { passive: true });
-  document.addEventListener('pointercancel', function () { pressedAnimation?.cancel(); pressedAnimation = null; if (pressed) stop(pressed); pressed = null; }, { passive: true });
+  document.addEventListener('pointercancel', release, { passive: true });
   document.addEventListener('click', function (event) {
-    if (event.target.closest('[data-theme-choice]')) symbolChangedByUser = true;
     var target = control(event), icon = target?.querySelector('svg.icon');
     if (!icon || target.disabled || target.closest('[inert]')) return;
-    play(icon, [{ transform: 'scale(.94)' }, { transform: 'scale(1.02)', offset: .65 }, { transform: 'none' }], 220);
+    springTo(icon, 1, -1.1);
   });
   new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'open', 'aria-expanded', 'aria-current'] });
   window.addEventListener('resize', schedule, { passive: true });
-  function clear() { Array.from(running.keys()).forEach(stop); pressedAnimation?.cancel(); pressedAnimation = null; pressed = null; }
+  function clear() {
+    Array.from(running.keys()).forEach(stop);
+    cancelAnimationFrame(springRaf); springRaf = 0;
+    springs.forEach(function (state, element) { restoreScale(element, state); }); springs.clear(); pressed = null; signal();
+  }
   reduced.addEventListener('change', function () { clear(); schedule(); });
   window.addEventListener('pagehide', function () { cancelAnimationFrame(pending); pending = 0; clear(); });
   window.addEventListener('pageshow', schedule);

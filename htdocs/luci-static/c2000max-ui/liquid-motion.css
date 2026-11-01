@@ -4,7 +4,6 @@
 html[data-motion-ready] .icon :is(.symbol-outline,.symbol-selected) { transition: opacity var(--motion-exit) ease; }
 :is(.active,[aria-current="page"]) > .icon .symbol-outline { opacity: 0; }
 :is(.active,[aria-current="page"]) > .icon .symbol-selected { opacity: 1; }
-.c2000-ui .navigation > .nav-home .icon, .c2000-ui .menu-category > .icon:first-child { --icon-color: currentColor; }
 .c2000-ui .navigation > .nav-home { color: var(--text-secondary); }
 .c2000-ui .navigation > .nav-home.active { color: var(--accent); }
 html[data-motion-ready] .c2000-ui :is(.icon-button,.account,.nav-home,.menu-category,.menu-link,.cbi-button,.btn,.ui-button), html[data-motion-ready] .login-page :is(.icon-button,.login-submit) {

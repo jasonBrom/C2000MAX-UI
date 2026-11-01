@@ -6,8 +6,8 @@
   --glass-edge: rgba(255, 255, 255, .66);
   --glass-control: rgba(255, 255, 255, .42);
   --glass-selected: rgba(40, 48, 62, .075);
-  --glass-ink: #252a32;
-  --glass-muted: #4c535e;
+  --glass-ink: var(--text);
+  --glass-muted: var(--text-secondary);
   --glass-shadow: 0 6px 24px rgba(22, 32, 50, .12);
   --content-shadow: 0 2px 10px rgba(30, 45, 65, .025);
 }
@@ -17,22 +17,22 @@
   --glass-edge: rgba(255, 255, 255, .26);
   --glass-control: rgba(255, 255, 255, .08);
   --glass-selected: rgba(255, 255, 255, .13);
-  --glass-ink: #f5f7fb;
-  --glass-muted: #d0d5dd;
+  --glass-ink: var(--text);
+  --glass-muted: var(--text-secondary);
   --glass-shadow: 0 6px 24px rgba(0, 0, 0, .20);
   --content-shadow: 0 2px 10px rgba(0, 0, 0, .05);
 }
 :root[data-skin="max"] { --accent: #006be5; --accent-hover: #005dc9; --focus: #006be5; }
 :root[data-theme="dark"][data-skin="max"] { --accent: #8fc2ff; --accent-hover: #b4d6ff; --focus: #8fc2ff; --on-accent: #10223a; }
 
-/* Seasonal artwork and accent colours remain; the working surfaces have a neutral base. */
-body.c2000-ui {
+/* Classic surfaces are neutral. Seasonal skins inherit their full original token palettes. */
+body.c2000-ui { isolation: isolate; background: var(--page); }
+:root[data-skin="max"] body.c2000-ui {
   --page: #f2f4f8; --surface: #fff; --surface-soft: #f4f5f8; --surface-raised: #fff;
   --text: #202530; --text-secondary: #515b6a; --text-muted: #626d7d;
   --border: #dce1e8; --border-soft: #e7eaf0; --control-border: #8c97a6; --hover: #e9edf3;
-  isolation: isolate; background: var(--page);
 }
-[data-theme="dark"] body.c2000-ui {
+:root[data-theme="dark"][data-skin="max"] body.c2000-ui {
   --page: #14181e; --surface: #222730; --surface-soft: #2b313b; --surface-raised: #303741;
   --text: #f4f6fa; --text-secondary: #cbd2dd; --text-muted: #acb7c6;
   --border: #434c59; --border-soft: #353d48; --control-border: #788493; --hover: #373f4d;
@@ -41,6 +41,7 @@ body.c2000-ui {
 .c2000-ui .topbar { z-index: 15; }
 .c2000-ui .header-menu, .c2000-ui .brand { z-index: 16; }
 .liquid-overlay { position: fixed; inset: 0; z-index: 9; pointer-events: none; overflow: hidden; }
+.liquid-overlay[data-glass-layer="drawer"] { z-index: 29; }
 .liquid-overlay > .liquid-pane { position: absolute; pointer-events: none; background: transparent; }
 .liquid-scene {
   position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
@@ -81,10 +82,9 @@ body.c2000-ui {
 .c2000-ui .account { padding-inline: 8px; }
 .c2000-ui :is(.icon-button,.avatar), .login-page .icon-button { border-radius: 50%; }
 .c2000-ui .sidebar {
-  --glass-wash: rgba(247,249,252,.68);
+  --glass-wash: color-mix(in srgb, var(--sidebar) 68%, transparent);
   inset: 12px auto 12px 12px; width: calc(var(--sidebar-width) - 24px); height: calc(100dvh - 24px); border-radius: 26px;
 }
-[data-theme="dark"] .c2000-ui .sidebar { --glass-wash: rgba(29,35,44,.68); }
 .c2000-ui .sidebar-backdrop { background: rgba(10,16,25,.24); backdrop-filter: none; }
 .c2000-ui .sidebar .menu-search { margin-inline: 12px; background: var(--glass-control); border: 0; border-radius: 999px; }
 .c2000-ui .navigation { padding-inline: 8px; }
@@ -92,8 +92,16 @@ body.c2000-ui {
 .c2000-ui :is(.nav-home,.menu-category,.menu-link) { border-radius: 14px; }
 .c2000-ui :is(.nav-home,.menu-link).active { background: var(--glass-selected); box-shadow: none; color: var(--accent); }
 .c2000-ui :is(.menu-category,.menu-link):hover { background: var(--glass-control); }
-.c2000-ui :is(.account-menu,.theme-control,.modal,.ui-modal,dialog,.toast) { --glass-wash: rgba(248,250,253,.68); border-radius: 24px; }
-[data-theme="dark"] .c2000-ui :is(.account-menu,.theme-control,.modal,.ui-modal,dialog,.toast) { --glass-wash: rgba(32,38,47,.68); }
+/* Preserve category colours through hover, focus and expanded states. */
+.c2000-ui :is(.nav-home,.menu-category,.menu-root-link):has(> .icon-tone-network) { --menu-ink: var(--icon-network); }
+.c2000-ui :is(.nav-home,.menu-category,.menu-root-link):has(> .icon-tone-system) { --menu-ink: var(--icon-system); }
+.c2000-ui :is(.nav-home,.menu-category,.menu-root-link):has(> .icon-tone-device) { --menu-ink: var(--icon-device); }
+.c2000-ui :is(.nav-home,.menu-category,.menu-root-link):has(> .icon-tone-signal) { --menu-ink: var(--icon-signal); }
+.c2000-ui :is(.nav-home,.menu-category,.menu-root-link):is(:hover,:focus-visible), .c2000-ui .menu-group[open] > .menu-category {
+  color: color-mix(in srgb, var(--menu-ink, var(--accent)) 75%, var(--text));
+  background: color-mix(in srgb, var(--menu-ink, var(--accent)) 10%, transparent);
+}
+.c2000-ui :is(.account-menu,.theme-control,.modal,.ui-modal,dialog,.toast) { --glass-wash: color-mix(in srgb, var(--surface-raised) 68%, transparent); border-radius: 24px; }
 .c2000-ui .topbar .theme-picker > .theme-control { border: 0; border-radius: 24px; }
 .c2000-ui .theme-control button, .login-page .theme-control button { color: var(--glass-muted); border-radius: 999px; }
 .c2000-ui .theme-control button[aria-pressed="true"], .login-page .theme-control button[aria-pressed="true"] { background: var(--glass-selected); color: var(--glass-ink); box-shadow: none; }
@@ -118,8 +126,7 @@ body.c2000-ui {
 .c2000-ui .menu-search input { border: 0; box-shadow: none; background: none; }
 .c2000-ui :is(input[type="checkbox"],input[type="radio"],input[type="range"]) { accent-color: var(--accent); }
 .c2000-ui :is(.cbi-tooltip,.ui-alert,.alert-message) { border-radius: 14px; }
-.c2000-ui .cbi-page-actions { --glass-wash: rgba(248,250,253,.62); border-radius: 22px; padding: 12px; gap: 8px; }
-[data-theme="dark"] .c2000-ui .cbi-page-actions { --glass-wash: rgba(32,38,47,.62); }
+.c2000-ui .cbi-page-actions { --glass-wash: color-mix(in srgb, var(--surface-raised) 62%, transparent); border-radius: 22px; padding: 12px; gap: 8px; }
 .c2000-ui .table .th, .c2000-ui table th { background: var(--surface-soft); }
 .c2000-ui :is(.ui-progress,.cbi-progressbar,.status-ring-track) { border-color: transparent; }
 
@@ -141,6 +148,19 @@ body.c2000-ui {
 .login-password button { border-radius: 50%; }
 .login-submit { margin-top: 10px; }
 .login-page .theme-control { border-radius: 24px; }
+
+/* Glass tint follows the skin without hiding the optical layer. */
+:root[data-skin]:not([data-skin="max"]) {
+  --glass-fill: color-mix(in srgb, var(--surface-raised) 78%, transparent);
+  --glass-wash: color-mix(in srgb, var(--surface) 26%, transparent);
+  --glass-selected: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+:root[data-theme="dark"][data-skin]:not([data-skin="max"]) {
+  --glass-wash: color-mix(in srgb, var(--text) 7.5%, transparent);
+  --glass-selected: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+:root[data-theme="dark"][data-skin="mid-autumn"] { --icon-system: #dfbc70; }
+:root[data-theme="dark"][data-skin="national-day"] { --icon-system: #e8bd74; }
 
 @media (max-width: 1100px) {
   .c2000-ui .sidebar { width: min(320px, calc(100vw - 24px)); transform: translateX(calc(-100% - 24px)); }

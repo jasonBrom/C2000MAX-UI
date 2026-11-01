@@ -20,7 +20,7 @@ const ready = (page, selector) => page.waitForFunction(s => document.querySelect
   const toggle = page.locator('.theme-toggle'), box = await toggle.boundingBox();
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down(); await page.waitForTimeout(160);
-  assert.notEqual(await toggle.evaluate(el => getComputedStyle(el).transform), 'none', 'press remains held');
+  assert.ok(await toggle.evaluate(el => parseFloat(getComputedStyle(el).scale) < .98), 'press remains held');
   await page.mouse.up();
   await ready(page, '.theme-control');
   await page.waitForTimeout(300);

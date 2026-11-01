@@ -1,13 +1,13 @@
 /* Shared live-content lenses for navigation; isolated wallpaper lenses for authentication. */
 (function () {
   'use strict';
-  var vendor = new URL('liquidGL.vendor.js?v=3.0.0-c2000.2', document.currentScript.src).href;
+  var vendor = new URL('liquidGL.vendor.js?v=3.0.0-c2000.3', document.currentScript.src).href;
   if (!document.getElementById('liquid-scene')) return;
   var loginPage = document.body.classList.contains('login-page');
   var reduced = matchMedia('(prefers-reduced-motion: reduce)');
   var transparency = matchMedia('(prefers-reduced-transparency: reduce)');
   var forced = matchMedia('(forced-colors: active)');
-  var active = new Map(), serial = 0, pending = 0, refreshTimer = 0, geometryRaf = 0, overlay = null, loading = false, failed = false;
+  var active = new Map(), overlays = new Map(), serial = 0, pending = 0, refreshTimer = 0, geometryRaf = 0, loading = false, failed = false;
   var selectors = '.login-card,.mobile-nav,.sidebar,.header-menu,.theme-toggle,.account,.account-menu,.theme-control,.modal,.ui-modal,dialog[open],.cbi-page-actions,.cbi-dropdown > ul.dropdown,.ui-dropdown-panel,.toast';
   var appearance = palette();
   var enhancementAfter = performance.now() + (loginPage ? 0 : 800);
@@ -19,27 +19,30 @@
   function visible(panel) {
     var exiting = panel.hasAttribute('data-motion-exit');
     if (!panel.isConnected || (panel.closest('[hidden]') && !exiting)) return false;
-    var inert = panel.closest('[inert]');
-    if (inert && !(inert === panel && exiting)) return false;
+    // Inert prevents interaction, not painting: a modal must not change background materials.
     var style = getComputedStyle(panel), rect = panel.getBoundingClientRect();
     if (panel.matches('.cbi-page-actions') && style.position !== 'sticky') return false;
     return style.display !== 'none' && style.visibility === 'visible' && rect.width > 0 && rect.height > 0 &&
       rect.bottom > 0 && rect.top < innerHeight && rect.right > 0 && rect.left < innerWidth;
   }
-  function getOverlay() {
+  function layerFor(panel) { return panel.matches('.sidebar') && innerWidth <= 1100 ? 'drawer' : 'base'; }
+  function getOverlay(layer) {
+    var overlay = overlays.get(layer);
     if (!overlay) {
       overlay = document.createElement('div');
       overlay.className = 'liquid-overlay';
+      overlay.dataset.glassLayer = layer;
       overlay.setAttribute('aria-hidden', 'true');
       overlay.setAttribute('data-liquid-ignore', '');
       document.body.append(overlay);
+      overlays.set(layer, overlay);
     }
-    overlay.style.zIndex = document.body.classList.contains('menu-open') ? '29' : '9';
     return overlay;
   }
   function sync(panel, entry) {
-    if (entry.local) return;
     var rect = panel.getBoundingClientRect(), style = getComputedStyle(panel);
+    if (entry.lens) entry.lens.options.opacity = Number(style.opacity);
+    if (entry.local) return;
     Object.assign(entry.pane.style, {
       left: rect.left + 'px', top: rect.top + 'px', width: rect.width + 'px', height: rect.height + 'px',
       borderRadius: style.borderRadius
@@ -47,11 +50,10 @@
   }
   function geometry() {
     geometryRaf = 0;
-    if (overlay) overlay.style.zIndex = document.body.classList.contains('menu-open') ? '29' : '9';
     var moving = false;
     active.forEach(function (entry, panel) {
       sync(panel, entry);
-      moving ||= (panel.getAnimations?.() || []).some(function (animation) { return animation.playState === 'running'; });
+      moving ||= panel.hasAttribute('data-motion-active') || (panel.getAnimations?.() || []).some(function (animation) { return animation.playState === 'running'; });
     });
     if (moving && permitted()) geometryRaf = requestAnimationFrame(geometry);
   }
@@ -60,7 +62,9 @@
     active.delete(panel); entry.disposed = true; clearTimeout(entry.timer);
     if (entry.lens) entry.lens.destroy();
     entry.pane.remove(); panel.removeAttribute('data-glass-state'); panel.removeAttribute('data-glass-pane');
-    if (!active.size && overlay) { overlay.remove(); overlay = null; }
+    overlays.forEach(function (overlay, layer) {
+      if (!Array.from(active.values()).some(function (item) { return !item.local && item.layer === layer; })) { overlay.remove(); overlays.delete(layer); }
+    });
   }
   function reset() { active.forEach(function (entry, panel) { remove(panel, entry); }); }
   function attach(panel) {
@@ -68,10 +72,10 @@
     var pane = document.createElement('div');
     pane.className = 'liquid-pane'; pane.id = 'liquid-pane-' + (++serial);
     pane.setAttribute('aria-hidden', 'true'); pane.setAttribute('data-liquid-ignore', '');
-    var entry = { pane: pane, lens: null, local: local, disposed: false };
+    var entry = { pane: pane, lens: null, local: local, layer: layerFor(panel), disposed: false };
     active.set(panel, entry);
     panel.setAttribute('data-glass-pane', pane.id); panel.setAttribute('data-glass-state', 'loading');
-    if (local) panel.prepend(pane); else getOverlay().append(pane);
+    if (local) panel.prepend(pane); else getOverlay(entry.layer).append(pane);
     sync(panel, entry);
     var compact = panel.matches('.header-menu,.theme-toggle,.account');
     var control = compact || panel.matches('.mobile-nav');
@@ -84,6 +88,7 @@
         refraction: control ? .012 : .008, bevelDepth: control ? .024 : .018,
         bevelWidth: control ? .10 : .075, aberration: .025, frost: 0, snapshotBlur: loginPage ? 2 : 8,
         tint: null, shadow: false, specular: true, animateSpecular: false, reveal: 'none', tilt: false,
+        opacity: Number(getComputedStyle(panel).opacity),
         interaction: control ? 'fluid' : 'none',
         interactionStrength: compact ? .28 : .22, interactionRadius: .30, interactionViscosity: .65,
         on: { init: function () {
@@ -121,15 +126,18 @@
       panel.setAttribute('data-liquid-ignore', '');
     });
     var candidates = panels.filter(visible);
-    candidates.sort(function (a, b) {
+    var persistent = candidates.filter(function (panel) { return panel.matches('.login-card,.mobile-nav,.sidebar,.header-menu,.theme-toggle,.account,.cbi-page-actions'); });
+    var floating = candidates.filter(function (panel) { return !persistent.includes(panel); });
+    floating.sort(function (a, b) {
       function priority(panel) {
         return panel.matches('.modal,.ui-modal,dialog,.login-card,.account-menu,.theme-control') ? 0 : panel.matches('.mobile-nav,.sidebar') ? 1 : 2;
       }
       return priority(a) - priority(b);
     });
-    candidates = candidates.slice(0, 4);
+    // Reserve permanent controls before admitting transient panels; opening a menu cannot evict an avatar.
+    candidates = persistent.concat(floating.slice(0, Math.max(0, 8 - persistent.length)));
     if (!permitted() || failed) { reset(); return; }
-    active.forEach(function (entry, panel) { if (!candidates.includes(panel)) remove(panel, entry); });
+    active.forEach(function (entry, panel) { if (!candidates.includes(panel) || (!entry.local && entry.layer !== layerFor(panel))) remove(panel, entry); });
     if (!candidates.length) return;
     // Let first-paint resource transitions finish before compiling/rasterising the GPU enhancement.
     if (!active.size && !loginPage && performance.now() < enhancementAfter) {

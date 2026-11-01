@@ -73,7 +73,7 @@ async function ready(page, selector) {
     await ready(page, '#glass-test-dialog');
     await page.evaluate(() => document.querySelector('#glass-test-dialog').remove());
     await page.waitForFunction(() => !document.querySelector('#glass-test-dialog'));
-    assert.ok(await page.locator('.liquid-pane').count() <= 4);
+    assert.ok(await page.locator('.liquid-pane').count() <= 8);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.waitForFunction(() => !document.querySelector('.liquid-pane'));
     assert.equal(await page.locator('canvas[data-liquid-ignore]').count(), 0);

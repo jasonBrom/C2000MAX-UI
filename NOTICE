@@ -10,7 +10,8 @@ liquidGL v3.0.0, Copyright (c) NaughtyDuk, is distributed under the MIT License.
 Source: https://github.com/naughtyduk/liquidGL/tree/88f681ab7035fd55b04f63edff1841e32c4199e9
 See htdocs/luci-static/c2000max-ui/liquidGL.LICENSE.txt. No upstream demo assets are included.
 Local modifications: optional snapshotBlur caching, input/editable-content exclusion in snapshot capture,
-and animateSpecular:false to retain highlights without continuous idle redraw.
+animateSpecular:false to retain highlights without continuous idle redraw,
+and per-lens opacity to follow foreground panel transitions.
 
 Visual assets:
 - c2000max-front.png: existing C2000MAX prototype asset derived from user-supplied references.
