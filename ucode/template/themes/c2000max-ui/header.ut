@@ -24,13 +24,14 @@
 {% if (node?.css): %}<link rel="stylesheet" href="{{ resource }}/{{ node.css }}">{% endif %}
 {% if (css): %}<style>{{ css }}</style>{% endif %}
 <link rel="stylesheet" href="{{ media }}/density.css?v=1.0.22-r1">
-<link rel="stylesheet" href="{{ media }}/liquid.css?v=liquidGL-1">
+<link rel="stylesheet" href="{{ media }}/liquid.css?v=liquidGL-2">
 <script src="{{ dispatcher.build_url('admin/translations', dispatcher.lang) }}"></script>
 <script src="{{ resource }}/cbi.js"></script>
 <script src="{{ media }}/data.js?v=1.0.22-r1"></script>
 <script src="{{ media }}/dashboard.js?v=1.0.22-r1"></script>
 </head>
 <body class="c2000-ui lang_{{ dispatcher.lang }}" data-page="{{ entityencode(join('-', ctx.request_path), true) }}">
+<div class="liquid-scene" id="liquid-scene" aria-hidden="true"></div>
 {% if (!blank_page): %}
 <a class="skip-link" href="#maincontent">{{ _('Skip to content') }}</a>
 {% include('themes/c2000max-ui/icons') %}

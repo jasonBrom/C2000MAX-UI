@@ -1,5 +1,4 @@
-  <nav class="mobile-nav" aria-label="手机快捷导航" data-liquid-ignore>
-    <div class="liquid-pane liquid-mobile" aria-hidden="true"></div>
+  <nav class="mobile-nav" aria-label="手机快捷导航" data-glass="regular">
     <button class="active" data-panel="home"><svg class="icon icon-tone-network"><use href="#home"/></svg><span>首页</span></button>
     <button data-panel="signal"><svg class="icon icon-tone-device"><use href="#radio"/></svg><span>5G 模组</span></button>
     <button data-panel="wifi"><svg class="icon icon-tone-signal"><use href="#wifi"/></svg><span>无线</span></button>

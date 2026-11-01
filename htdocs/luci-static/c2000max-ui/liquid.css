@@ -1,63 +1,146 @@
-/* Glass surfaces retain opaque fallbacks when transparency is unavailable. */
+/* Apple-inspired hierarchy: refracting functional surfaces above quiet content materials. */
 :root {
-  --glass-card: rgba(255, 255, 255, .84);
-  --glass-panel: rgba(245, 249, 255, .90);
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  --glass-fill: rgba(247, 250, 255, .76);
+  --glass-veil: rgba(244, 248, 255, .66);
   --glass-edge: rgba(255, 255, 255, .85);
-  --glass-shadow: 0 12px 36px rgba(39, 64, 97, .09), inset 0 1px 0 rgba(255, 255, 255, .9);
+  --glass-edge-low: rgba(60, 83, 122, .16);
+  --glass-selected: rgba(255, 255, 255, .72);
+  --glass-shadow: 0 12px 36px rgba(21, 44, 81, .13), inset 0 1px 0 rgba(255, 255, 255, .86);
+  --glass-control: rgba(255, 255, 255, .68);
+  --content-shadow: 0 4px 18px rgba(31, 53, 82, .045);
 }
 :root[data-theme="dark"] {
-  --glass-card: rgba(30, 37, 48, .92);
-  --glass-panel: rgba(24, 31, 42, .94);
-  --glass-edge: rgba(210, 226, 255, .14);
-  --glass-shadow: 0 12px 36px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .08);
+  --glass-fill: rgba(28, 34, 45, .82);
+  --glass-veil: rgba(16, 23, 35, .68);
+  --glass-edge: rgba(238, 246, 255, .25);
+  --glass-edge-low: rgba(255, 255, 255, .08);
+  --glass-selected: rgba(255, 255, 255, .14);
+  --glass-shadow: 0 16px 40px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .2);
+  --glass-control: rgba(255, 255, 255, .08);
+  --content-shadow: 0 4px 18px rgba(0, 0, 0, .08);
 }
-body.c2000-ui {
-  background: radial-gradient(ellipse at 82% 0%, rgba(146, 189, 242, .28), transparent 40%),
-    radial-gradient(ellipse at 14% 70%, rgba(158, 207, 217, .2), transparent 45%), var(--page);
-  background-attachment: fixed;
+:root[data-skin="max"] { --accent: #0568db; --accent-hover: #0056bd; --focus: #0568db; }
+:root[data-theme="dark"][data-skin="max"] { --accent: #87bbff; --accent-hover: #b2d3ff; --focus: #87bbff; --on-accent: #091b34; }
+body.c2000-ui { isolation: isolate; background: var(--page); }
+.liquid-scene {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+  background: radial-gradient(ellipse at 5% 20%, rgba(121, 186, 244, .38), transparent 55%),
+    radial-gradient(ellipse at 85% 85%, rgba(107, 200, 201, .28), transparent 55%),
+    radial-gradient(ellipse at 90% 5%, rgba(183, 164, 241, .25), transparent 55%), var(--page);
 }
-[data-theme="dark"] body.c2000-ui {
-  background: radial-gradient(ellipse at 82% 0%, rgba(72, 108, 157, .19), transparent 42%),
-    radial-gradient(ellipse at 14% 70%, rgba(45, 109, 118, .12), transparent 45%), var(--page);
-  background-attachment: fixed;
+[data-theme="dark"] .liquid-scene {
+  background: radial-gradient(ellipse at 5% 20%, rgba(44, 101, 164, .32), transparent 55%),
+    radial-gradient(ellipse at 85% 85%, rgba(38, 117, 124, .25), transparent 55%),
+    radial-gradient(ellipse at 90% 5%, rgba(111, 72, 160, .2), transparent 55%), var(--page);
 }
-.c2000-ui .ui-card, .c2000-ui .cbi-section,
-.c2000-ui .modal, .c2000-ui dialog, .c2000-ui .account-menu,
-.c2000-ui .topbar .theme-picker > .theme-control {
-  background: var(--glass-card);
-  border-color: var(--glass-edge);
-  box-shadow: var(--glass-shadow);
-  border-radius: 18px;
+.login-page .liquid-scene { background: #172637; }
+.liquid-scene > .login-wallpaper, .liquid-scene > .login-shade { position: absolute; z-index: 0; }
+.liquid-scene > .login-shade { z-index: 1; background: linear-gradient(160deg, rgba(0,0,0,.06), rgba(0,0,0,.24)); }
+
+/* Decorative panes never own real controls or text. Canvas stays below the live DOM. */
+[data-glass] { isolation: isolate; contain: paint; }
+[data-glass] > :not(.liquid-pane):not(canvas) { position: relative; z-index: 2; }
+[data-glass] > .liquid-pane { position: fixed; inset: 0; z-index: 0; border-radius: inherit; pointer-events: none; }
+[data-glass]::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: inherit;
+  border: 1px solid var(--glass-edge); border-bottom-color: var(--glass-edge-low);
+  background: linear-gradient(145deg, rgba(255,255,255,.14), transparent 42%, rgba(255,255,255,.025));
+  box-shadow: inset 0 1px 1px rgba(255,255,255,.12);
 }
-.c2000-ui .cbi-section .cbi-section { background: var(--surface-soft); box-shadow: none; }
-.c2000-ui .sidebar, .c2000-ui .mobile-nav { background: var(--glass-panel); }
-.c2000-ui .sidebar { border-right-color: var(--glass-edge); }
-.c2000-ui .mobile-nav { border-top-color: var(--glass-edge); }
-.c2000-ui .sidebar > :not(.liquid-pane), .c2000-ui .mobile-nav > :not(.liquid-pane) { position: relative; z-index: 1; }
-.liquid-pane { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-.c2000-ui .ui-button, .c2000-ui .cbi-button, .c2000-ui .btn,
-.c2000-ui .icon-button, .login-submit { border-radius: 12px; }
-.c2000-ui .tabs, .c2000-ui .cbi-tabmenu, .c2000-ui .menu-search { border-radius: 14px; }
-.login-card { border-radius: 26px; box-shadow: 0 24px 80px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.7); }
-.login-field input { border-radius: 12px; }
-@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .c2000-ui .sidebar, .c2000-ui .mobile-nav, .c2000-ui .modal,
-  .c2000-ui .account-menu, .c2000-ui .topbar .theme-picker > .theme-control {
-    -webkit-backdrop-filter: blur(18px) saturate(135%);
-    backdrop-filter: blur(18px) saturate(135%);
-  }
+.c2000-ui :is(.sidebar,.mobile-nav,.account-menu,.theme-control,.modal,.ui-modal,dialog,.cbi-page-actions,.cbi-dropdown > ul.dropdown,.ui-dropdown-panel,.toast),
+.login-page :is(.login-card,.theme-control) {
+  background: var(--glass-fill); border: 0; box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(24px) saturate(145%); backdrop-filter: blur(24px) saturate(145%);
 }
-.c2000-ui [data-liquid-active] { -webkit-backdrop-filter: none; backdrop-filter: none; }
+.c2000-ui [data-glass-state="gpu"], .login-page [data-glass-state="gpu"] {
+  background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+[data-glass-state="gpu"]::after {
+  background: linear-gradient(145deg, rgba(255,255,255,.12), transparent 50%), var(--glass-veil);
+}
+.c2000-ui .sidebar { inset: 12px auto 12px 12px; width: calc(var(--sidebar-width) - 24px); height: calc(100dvh - 24px); border-radius: 24px; }
+.c2000-ui .sidebar .menu-search { margin-inline: 12px; background: var(--glass-control); border: 1px solid var(--glass-edge-low); border-radius: 14px; }
+.c2000-ui .navigation { padding-inline: 8px; }
+.c2000-ui .sidebar-footer { margin-inline: 14px; }
+.c2000-ui :is(.nav-home,.menu-category,.menu-link) { border-radius: 12px; }
+.c2000-ui :is(.nav-home,.menu-link).active { background: var(--glass-selected); box-shadow: 0 1px 4px rgba(16,35,65,.06), inset 0 1px 0 var(--glass-edge); color: var(--accent); }
+.c2000-ui .menu-category:hover, .c2000-ui .menu-link:hover { background: var(--glass-control); }
+
+/* Content is stable and readable; repeated cards do not get GPU lenses or nested blur. */
+.c2000-ui :is(.ui-card,.cbi-section,.ifacebox,.ui-section) {
+  background: var(--surface); background: color-mix(in srgb, var(--surface) 94%, transparent);
+  border: 1px solid var(--border-soft); border-radius: 18px; box-shadow: var(--content-shadow);
+}
+.c2000-ui .cbi-section .cbi-section { background: var(--surface-soft); border-radius: 12px; box-shadow: none; }
+.c2000-ui .ui-icon-box { border-radius: 12px; }
+.c2000-ui :is(.ui-badge,.ifacebadge) { border-radius: 8px; }
+.c2000-ui .account-menu, .c2000-ui .modal, .c2000-ui dialog { border-radius: 22px; }
+.c2000-ui .topbar .theme-picker > .theme-control, .login-page .theme-control { border-radius: 20px; }
+.c2000-ui .topbar .theme-picker > .theme-control { background: var(--glass-fill); border: 0; box-shadow: var(--glass-shadow); }
+.c2000-ui .topbar .theme-picker > .theme-control[data-glass-state="gpu"] { background: transparent; }
+.c2000-ui .account { border-radius: 999px; padding-inline: 8px; }
+.c2000-ui :is(.icon-button,.avatar), .login-page .icon-button { border-radius: 50%; background: var(--glass-control); box-shadow: inset 0 1px 0 var(--glass-edge), 0 3px 10px rgba(0,0,0,.04); }
+.c2000-ui :is(.cbi-button,.btn,.ui-button), .login-submit { border-radius: 999px; box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 2px 5px rgba(13,36,72,.07); }
+.c2000-ui :is(.cbi-button,.btn,.ui-button):active, .login-submit:active { transform: scale(.98); }
+.c2000-ui :is(.cbi-button,.btn,.ui-button):disabled { transform: none; box-shadow: none; }
+.c2000-ui .cbi-dropdown.btn { border-radius: 12px; }
+.c2000-ui :is(.cbi-dropdown > ul.dropdown,.ui-dropdown-panel) { border-radius: 14px; background: var(--surface-raised); border-color: var(--border); box-shadow: var(--glass-shadow); }
+.c2000-ui :is(.tabs,.cbi-tabmenu,.ui-tabs) { padding: 5px; gap: 4px; border: 1px solid var(--border-soft); border-radius: 15px; background: var(--surface-soft); }
+.c2000-ui :is(.tabs,.cbi-tabmenu) > li > a, .c2000-ui .ui-tabs [role="tab"] { border-radius: 11px; border: 0; }
+.c2000-ui :is(.tabs > li.active,.cbi-tabmenu > .cbi-tab) > a, .c2000-ui .ui-tabs [aria-selected="true"] { background: var(--surface-raised); color: var(--accent); box-shadow: 0 2px 5px rgba(22,42,74,.09); }
+.c2000-ui :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="submit"]):not([type="reset"]),select,textarea,.ui-control) { border-radius: 10px; }
+.c2000-ui .menu-search input { border: 0; box-shadow: none; background: none; }
+.c2000-ui :is(input[type="checkbox"],input[type="radio"],input[type="range"]) { accent-color: var(--accent); }
+.c2000-ui :is(.cbi-tooltip,.toast,.ui-alert,.alert-message) { border-radius: 14px; }
+.c2000-ui .cbi-page-actions { border-radius: 18px; padding: 12px; gap: 8px; }
+.c2000-ui .table .th, .c2000-ui table th { background: var(--surface-soft); }
+.c2000-ui :is(.ui-progress,.cbi-progressbar,.status-ring-track) { border-color: transparent; }
+
+.login-card { position: relative; border-radius: 30px; --glass-veil: rgba(246,249,255,.68); --text: #142235; --text-secondary: #243850; --text-muted: #293d55; }
+[data-theme="dark"] .login-card { --glass-veil: rgba(13,20,32,.68); --text: #f4f7fd; --text-secondary: #e3ebf8; --text-muted: #d5deed; }
+.login-page .login-card { border: 0; background: var(--glass-fill); }
+.login-page .login-card[data-glass-state="gpu"] { background: transparent; }
+.login-mark { border-radius: 16px; background: var(--glass-control); box-shadow: inset 0 1px 0 var(--glass-edge); }
+.login-eyebrow { letter-spacing: 1.4px; }
+.login-card h1 { letter-spacing: -.8px; }
+.login-field input { border-radius: 14px; border-color: var(--glass-edge-low); background: var(--glass-control); }
+[data-theme="dark"] .login-field input { border-color: rgba(255,255,255,.28); background: rgba(10,16,25,.38); }
+.login-password button { border-radius: 12px; }
+.login-submit { margin-top: 10px; }
+.c2000-ui [data-glass][data-glass-state="gpu"], .login-page [data-glass][data-glass-state="gpu"] {
+  /* GPU readiness is a rendering contract; LuCI specificity must not cover this layer. */
+  background: transparent !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+
+@media (max-width: 1100px) {
+  .c2000-ui .sidebar { width: min(320px, calc(100vw - 24px)); transform: translateX(calc(-100% - 24px)); }
+  .c2000-ui.menu-open .sidebar { transform: translateX(0); }
+  .c2000-ui .sidebar .menu-search { margin-top: 20px; }
+}
 @media (max-width: 700px) {
-  .c2000-ui .mobile-nav { inset: auto 10px max(8px, env(safe-area-inset-bottom)); min-height: 68px; padding: 6px; border: 1px solid var(--glass-edge); border-radius: 22px; box-shadow: var(--glass-shadow); overflow: hidden; }
-  .c2000-ui .mobile-nav > :not(.liquid-pane) { min-height: 54px; }
-  .c2000-ui .mobile-nav .liquid-pane { border-radius: inherit; }
+  body.c2000-ui { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  .c2000-ui .mobile-nav { inset: auto 12px max(10px, env(safe-area-inset-bottom)); min-height: 72px; padding: 6px; gap: 2px; border: 0; border-radius: 28px; }
+  .c2000-ui .mobile-nav :is(a,button) { min-height: 60px; border-radius: 22px; font-size: 11px; line-height: 1.2; gap: 4px; color: var(--text-secondary); }
+  .c2000-ui .mobile-nav .icon { --icon-color: currentColor; width: 22px; height: 22px; }
+  .c2000-ui .mobile-nav :is(a,button).active { color: var(--accent); background: var(--glass-selected); box-shadow: inset 0 1px 0 var(--glass-edge); font-weight: 650; }
+  .c2000-ui .cbi-page-actions { bottom: calc(92px + env(safe-area-inset-bottom)); }
+  .login-card { border-radius: 26px; }
+}
+@media (prefers-contrast: more) {
+  :root { --glass-veil: rgba(248,250,255,.94); --glass-edge-low: #60728a; }
+  :root[data-theme="dark"] { --glass-veil: rgba(14,20,30,.95); --glass-edge-low: #9ba9bb; }
+  .login-card { --glass-veil: rgba(248,250,255,.94); }
+  [data-theme="dark"] .login-card { --glass-veil: rgba(14,20,30,.95); }
 }
 @media (prefers-reduced-transparency: reduce), (forced-colors: active) {
-  .c2000-ui .ui-card, .c2000-ui .cbi-section, .c2000-ui .modal,
-  .c2000-ui .sidebar, .c2000-ui .mobile-nav, .c2000-ui .account-menu,
-  .c2000-ui .topbar .theme-picker > .theme-control, .login-card {
-    background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none;
-  }
+  .c2000-ui [data-glass], .login-page [data-glass] { background: var(--surface) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  [data-glass]::after { background: none; }
   .liquid-pane { display: none; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .c2000-ui [data-glass]:not([data-glass-state="gpu"]), .login-page [data-glass]:not([data-glass-state="gpu"]) { background: var(--surface); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .c2000-ui :is(.cbi-button,.btn,.ui-button):active, .login-submit:active { transform: none; }
 }

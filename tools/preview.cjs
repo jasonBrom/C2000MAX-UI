@@ -19,7 +19,8 @@ http.createServer(async(req,res)=>{
  if(req.method!=='GET'&&req.method!=='HEAD'){res.writeHead(405).end('Preview is read only');return;}
  try {
   let relative=decodeURIComponent(url.pathname),file;
-  if(relative==='/'||relative==='/cgi-bin/luci/admin/status/c2000max')file=path.join(preview,'dashboard.html');
+  if(relative==='/'){res.writeHead(302,{Location:'/cgi-bin/luci/admin/status/c2000max'}).end();return;}
+  if(relative==='/cgi-bin/luci/admin/status/c2000max')file=path.join(preview,'dashboard.html');
   else if(relative==='/login'||relative==='/cgi-bin/luci/admin/logout')file=path.join(preview,'login.html');
   else if(relative==='/login-error')file=path.join(preview,'login-error.html');
   else if(relative==='/preview-runtime.js')file=path.join(root,'tests/preview-runtime.js');
@@ -37,8 +38,8 @@ http.createServer(async(req,res)=>{
   let data=await fs.readFile(file);
   if(file.endsWith('login.html')||file.endsWith('login-error.html')){
    let html=data.toString();
-   if(bing)html=html.replace('<body class="login-page">','<body class="login-page"><img class="login-wallpaper" src="/bing.jpg" alt="">')
-    .replace('<span>C2000MAX · Always Connected</span>','<span>Bing 每日壁纸 · '+esc(bing.copyright)+'</span>');
+   if(bing)html=html.replace(/(<img class="login-wallpaper" src=")[^"]+/, '$1/bing.jpg')
+    .replace(/(<span class="wallpaper-credit-text">)[^<]*/, '$1Bing 每日壁纸 · '+esc(bing.copyright));
    html=html.replace('</body>','<script>document.querySelector("form").addEventListener("submit",e=>{e.preventDefault(); let p=document.querySelector(".preview-login-note");if(!p){p=document.createElement("p");p.className="login-error preview-login-note";p.setAttribute("role","status");e.target.append(p);}p.textContent="这是外观预览，登录请在设备上操作。";});</script></body>');
    data=Buffer.from(html);
   }
