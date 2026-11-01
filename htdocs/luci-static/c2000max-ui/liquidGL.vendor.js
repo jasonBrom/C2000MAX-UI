@@ -6,6 +6,7 @@
  * Licence: MIT
  * Version: v3.0.0
  * C2000MAX patch: optional snapshotBlur caches a smooth blur before texture upload.
+ * C2000MAX patch: animateSpecular:false keeps the highlight without continuous redraw.
  */
 
 (() => {
@@ -6207,6 +6208,7 @@ fn fs() -> @location(0) vec4<f32> {
             options.bevelWidth,
             options.frost,
             options.specular,
+            options.animateSpecular,
             options.magnify,
             options.shadow,
             options.tint,
@@ -6269,6 +6271,7 @@ fn fs() -> @location(0) vec4<f32> {
           }
           animated ||= !!(
             options.specular &&
+            options.animateSpecular !== false &&
             rect &&
             rect.left < innerWidth &&
             rect.top < innerHeight &&
@@ -8735,6 +8738,7 @@ fn fs() -> @location(0) vec4<f32> {
       frost: 0,
       shadow: true,
       specular: true,
+      animateSpecular: true,
       reveal: "fade",
       tilt: false,
       tiltFactor: 5,

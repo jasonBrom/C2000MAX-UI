@@ -1,7 +1,7 @@
 /* Shared live-content lenses for navigation; isolated wallpaper lenses for authentication. */
 (function () {
   'use strict';
-  var vendor = new URL('liquidGL.vendor.js?v=3.0.0-c2000.1', document.currentScript.src).href;
+  var vendor = new URL('liquidGL.vendor.js?v=3.0.0-c2000.2', document.currentScript.src).href;
   if (!document.getElementById('liquid-scene')) return;
   var loginPage = document.body.classList.contains('login-page');
   var reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -73,19 +73,19 @@
     panel.setAttribute('data-glass-pane', pane.id); panel.setAttribute('data-glass-state', 'loading');
     if (local) panel.prepend(pane); else getOverlay().append(pane);
     sync(panel, entry);
-    var login = panel.matches('.login-card');
     var compact = panel.matches('.header-menu,.theme-toggle,.account');
-    var dark = document.documentElement.dataset.theme === 'dark';
+    var control = compact || panel.matches('.mobile-nav');
     var area = Math.max(1, document.body.scrollWidth * document.body.scrollHeight);
     try {
       entry.lens = window.liquidGL({
         target: '#' + pane.id, snapshot: loginPage ? '#liquid-scene' : 'body', content: false, zIndex: 0,
         resolution: loginPage ? Math.min(devicePixelRatio || 1, 1.25) : Math.max(.1, Math.min(1, Math.sqrt(2000000 / area))),
-        refraction: compact ? .032 : .022, bevelDepth: compact ? .12 : .085,
-        bevelWidth: compact ? .27 : .14, frost: 0, snapshotBlur: loginPage ? 2 : 6,
-        tint: dark ? 'rgba(12, 20, 36, 0.25)' : 'rgba(245, 249, 255, 0.10)',
-        shadow: false, specular: compact, reveal: 'none', tilt: false,
-        interaction: compact ? 'fluid' : 'none', interactionStrength: .16, interactionViscosity: .78,
+        // Shallow optics follow the upstream menu-bar lens; CSS supplies only a legibility wash.
+        refraction: control ? .012 : .008, bevelDepth: control ? .024 : .018,
+        bevelWidth: control ? .10 : .075, aberration: .025, frost: 0, snapshotBlur: loginPage ? 2 : 8,
+        tint: null, shadow: false, specular: true, animateSpecular: false, reveal: 'none', tilt: false,
+        interaction: control ? 'fluid' : 'none',
+        interactionStrength: compact ? .28 : .22, interactionRadius: .30, interactionViscosity: .65,
         on: { init: function () {
           clearTimeout(entry.timer);
           if (!entry.disposed) panel.setAttribute('data-glass-state', 'gpu');

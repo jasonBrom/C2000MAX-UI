@@ -14,7 +14,7 @@ html[data-motion-ready] .c2000-ui :is(.icon-button,.account,.nav-home,.menu-cate
 .c2000-ui .account-chevron { transform: rotate(90deg); }
 .c2000-ui .account[aria-expanded="true"] .account-chevron { transform: rotate(-90deg); }
 .c2000-ui [data-motion-exit], .login-page [data-motion-exit] { display: var(--motion-display,block) !important; pointer-events: none !important; }
-.liquid-selection { position: absolute !important; left: 0; top: 0; z-index: 2; pointer-events: none; border-radius: 22px; background: var(--glass-selected); box-shadow: inset 0 1px 0 var(--glass-edge), 0 2px 7px rgba(0,0,0,.06); }
+.liquid-selection { position: absolute !important; left: 0; top: 0; z-index: 2; pointer-events: none; border-radius: 999px; background: var(--glass-selected); box-shadow: none; }
 .liquid-selection[data-selection-ready] { transition: transform var(--motion-drawer) var(--motion-spring), width var(--motion-drawer) var(--motion-spring), height var(--motion-enter) var(--motion-spring); }
 .c2000-ui .mobile-nav.has-glass-selection :is(a,button).active { background: transparent; box-shadow: none; }
 .c2000-ui .mobile-nav > :is(a,button) { z-index: 3; }

@@ -42,7 +42,7 @@
   function decorate() {
     document.querySelectorAll('.theme-toggle').forEach(function (button) {
       var icon = button.querySelector('svg.icon'), previous = themeIcons.get(button);
-      if (icon && previous && icon !== previous && symbolChangedByUser) play(icon, [{ opacity: 0, transform: 'rotate(-35deg) scale(.85)' }, { opacity: 1, transform: 'none' }], 220);
+      if (icon && previous && icon !== previous && symbolChangedByUser) play(icon, [{ opacity: 0, transform: 'rotate(-20deg) scale(.94)' }, { opacity: 1, transform: 'none' }], 220);
       if (icon) themeIcons.set(button, icon);
     });
     symbolChangedByUser = false;
@@ -120,7 +120,7 @@
     if (event.target.closest('[data-theme-choice]')) symbolChangedByUser = true;
     var target = control(event), icon = target?.querySelector('svg.icon');
     if (!icon || target.disabled || target.closest('[inert]')) return;
-    play(icon, [{ transform: 'scale(.86)' }, { transform: 'scale(1.1)', offset: .65 }, { transform: 'none' }], 280);
+    play(icon, [{ transform: 'scale(.94)' }, { transform: 'scale(1.02)', offset: .65 }, { transform: 'none' }], 220);
   });
   new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'open', 'aria-expanded', 'aria-current'] });
   window.addEventListener('resize', schedule, { passive: true });

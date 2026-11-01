@@ -1,28 +1,42 @@
-/* Apple-inspired hierarchy: refracting functional surfaces above quiet content materials. */
+/* A single optical edge and a light adaptive wash; content stays on standard materials. */
 :root {
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
-  --glass-fill: rgba(247, 250, 255, .76);
-  --glass-veil: rgba(244, 248, 255, .66);
-  --glass-edge: rgba(255, 255, 255, .85);
-  --glass-edge-low: rgba(60, 83, 122, .16);
-  --glass-selected: rgba(255, 255, 255, .72);
-  --glass-shadow: 0 12px 36px rgba(21, 44, 81, .13), inset 0 1px 0 rgba(255, 255, 255, .86);
-  --glass-control: rgba(255, 255, 255, .68);
-  --content-shadow: 0 4px 18px rgba(31, 53, 82, .045);
+  --glass-fill: rgba(248, 249, 251, .76);
+  --glass-wash: rgba(255, 255, 255, .26);
+  --glass-edge: rgba(255, 255, 255, .66);
+  --glass-control: rgba(255, 255, 255, .42);
+  --glass-selected: rgba(40, 48, 62, .075);
+  --glass-ink: #252a32;
+  --glass-muted: #4c535e;
+  --glass-shadow: 0 6px 24px rgba(22, 32, 50, .12);
+  --content-shadow: 0 2px 10px rgba(30, 45, 65, .025);
 }
 :root[data-theme="dark"] {
-  --glass-fill: rgba(28, 34, 45, .82);
-  --glass-veil: rgba(16, 23, 35, .68);
-  --glass-edge: rgba(238, 246, 255, .25);
-  --glass-edge-low: rgba(255, 255, 255, .08);
-  --glass-selected: rgba(255, 255, 255, .14);
-  --glass-shadow: 0 16px 40px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .2);
+  --glass-fill: rgba(38, 42, 49, .78);
+  --glass-wash: rgba(220, 230, 244, .075);
+  --glass-edge: rgba(255, 255, 255, .26);
   --glass-control: rgba(255, 255, 255, .08);
-  --content-shadow: 0 4px 18px rgba(0, 0, 0, .08);
+  --glass-selected: rgba(255, 255, 255, .13);
+  --glass-ink: #f5f7fb;
+  --glass-muted: #d0d5dd;
+  --glass-shadow: 0 6px 24px rgba(0, 0, 0, .20);
+  --content-shadow: 0 2px 10px rgba(0, 0, 0, .05);
 }
-:root[data-skin="max"] { --accent: #0568db; --accent-hover: #0056bd; --focus: #0568db; }
-:root[data-theme="dark"][data-skin="max"] { --accent: #87bbff; --accent-hover: #b2d3ff; --focus: #87bbff; --on-accent: #091b34; }
-body.c2000-ui { isolation: isolate; background: var(--page); }
+:root[data-skin="max"] { --accent: #006be5; --accent-hover: #005dc9; --focus: #006be5; }
+:root[data-theme="dark"][data-skin="max"] { --accent: #8fc2ff; --accent-hover: #b4d6ff; --focus: #8fc2ff; --on-accent: #10223a; }
+
+/* Seasonal artwork and accent colours remain; the working surfaces have a neutral base. */
+body.c2000-ui {
+  --page: #f2f4f8; --surface: #fff; --surface-soft: #f4f5f8; --surface-raised: #fff;
+  --text: #202530; --text-secondary: #515b6a; --text-muted: #626d7d;
+  --border: #dce1e8; --border-soft: #e7eaf0; --control-border: #8c97a6; --hover: #e9edf3;
+  isolation: isolate; background: var(--page);
+}
+[data-theme="dark"] body.c2000-ui {
+  --page: #14181e; --surface: #222730; --surface-soft: #2b313b; --surface-raised: #303741;
+  --text: #f4f6fa; --text-secondary: #cbd2dd; --text-muted: #acb7c6;
+  --border: #434c59; --border-soft: #353d48; --control-border: #788493; --hover: #373f4d;
+}
 .c2000-ui .main { isolation: auto; }
 .c2000-ui .topbar { z-index: 15; }
 .c2000-ui .header-menu, .c2000-ui .brand { z-index: 16; }
@@ -30,100 +44,103 @@ body.c2000-ui { isolation: isolate; background: var(--page); }
 .liquid-overlay > .liquid-pane { position: absolute; pointer-events: none; background: transparent; }
 .liquid-scene {
   position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
-  background: radial-gradient(ellipse at 5% 20%, rgba(121, 186, 244, .38), transparent 55%),
-    radial-gradient(ellipse at 85% 85%, rgba(107, 200, 201, .28), transparent 55%),
-    radial-gradient(ellipse at 90% 5%, rgba(183, 164, 241, .25), transparent 55%), var(--page);
+  background: radial-gradient(ellipse at 0% 0%, rgba(151, 189, 233, .30), transparent 60%),
+    radial-gradient(ellipse at 100% 80%, rgba(142, 202, 193, .22), transparent 55%), var(--page);
 }
 [data-theme="dark"] .liquid-scene {
-  background: radial-gradient(ellipse at 5% 20%, rgba(44, 101, 164, .32), transparent 55%),
-    radial-gradient(ellipse at 85% 85%, rgba(38, 117, 124, .25), transparent 55%),
-    radial-gradient(ellipse at 90% 5%, rgba(111, 72, 160, .2), transparent 55%), var(--page);
+  background: radial-gradient(ellipse at 0% 0%, rgba(70, 116, 165, .26), transparent 60%),
+    radial-gradient(ellipse at 100% 80%, rgba(57, 117, 115, .18), transparent 55%), var(--page);
 }
 .login-page .liquid-scene { background: #172637; }
 .liquid-scene > .login-wallpaper, .liquid-scene > .login-shade { position: absolute; z-index: 0; }
-.liquid-scene > .login-shade { z-index: 1; background: linear-gradient(160deg, rgba(0,0,0,.06), rgba(0,0,0,.24)); }
+.liquid-scene > .login-shade { z-index: 1; background: linear-gradient(160deg, rgba(0,0,0,.04), rgba(0,0,0,.18)); }
 
-/* Decorative panes never own real controls or text. Canvas stays below the live DOM. */
-[data-glass] { isolation: isolate; contain: paint; }
+/* The canvas supplies the lensing. This wash never adds a second bevel or dark outline. */
+[data-glass] { isolation: isolate; contain: paint; color: var(--glass-ink); }
 [data-glass] > :not(.liquid-pane):not(canvas) { position: relative; z-index: 2; }
 [data-glass] > .liquid-pane { position: fixed; inset: 0; z-index: 0; border-radius: inherit; pointer-events: none; }
 [data-glass]::after {
   content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: inherit;
-  border: 1px solid var(--glass-edge); border-bottom-color: var(--glass-edge-low);
-  background: linear-gradient(145deg, rgba(255,255,255,.14), transparent 42%, rgba(255,255,255,.025));
-  box-shadow: inset 0 1px 1px rgba(255,255,255,.12);
+  border: .5px solid var(--glass-edge);
+  background: linear-gradient(155deg, rgba(255,255,255,.10), transparent 40%), var(--glass-wash);
 }
-.c2000-ui :is(.sidebar,.mobile-nav,.account-menu,.theme-control,.modal,.ui-modal,dialog,.cbi-page-actions,.cbi-dropdown > ul.dropdown,.ui-dropdown-panel,.toast),
-.login-page :is(.login-card,.theme-control) {
+.c2000-ui :is(.sidebar,.mobile-nav,.header-menu,.theme-toggle,.account,.account-menu,.theme-control,.modal,.ui-modal,dialog,.cbi-page-actions,.cbi-dropdown > ul.dropdown,.ui-dropdown-panel,.toast),
+.login-page :is(.login-card,.theme-toggle,.theme-control) {
   background: var(--glass-fill); border: 0; box-shadow: var(--glass-shadow);
-  -webkit-backdrop-filter: blur(24px) saturate(145%); backdrop-filter: blur(24px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(135%); backdrop-filter: blur(20px) saturate(135%);
 }
-.c2000-ui [data-glass-state="gpu"], .login-page [data-glass-state="gpu"] {
-  background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none;
+.c2000-ui [data-glass][data-glass-state="gpu"], .login-page [data-glass][data-glass-state="gpu"] {
+  background: transparent !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
 }
-[data-glass-state="gpu"]::after {
-  background: linear-gradient(145deg, rgba(255,255,255,.12), transparent 50%), var(--glass-veil);
-}
-.c2000-ui { --glass-veil: rgba(246,249,255,.30); }
-[data-theme="dark"] .c2000-ui { --glass-veil: rgba(15,22,34,.40); }
-.c2000-ui :is(.header-menu,.theme-toggle,.account) { --glass-veil: rgba(248,251,255,.14); }
-[data-theme="dark"] .c2000-ui :is(.header-menu,.theme-toggle,.account) { --glass-veil: rgba(17,24,38,.22); }
-.c2000-ui :is(.header-menu,.theme-toggle,.account)[data-glass] { background: var(--glass-fill); }
+[data-glass]:not([data-glass-state="gpu"])::after { background: none; }
+[data-glass-state="gpu"]::after { border-color: transparent; }
+.c2000-ui :is(.header-menu,.theme-toggle,.account) { border-radius: 999px; color: var(--glass-ink); }
+.login-page .theme-toggle { color: var(--glass-ink); }
 .c2000-ui .account[data-glass] .avatar { background: none; box-shadow: none; }
-[data-glass]::after { box-shadow: inset 1px 1px 0 rgba(255,255,255,.24), inset -1px -1px 0 rgba(255,255,255,.09); }
-.c2000-ui .sidebar { inset: 12px auto 12px 12px; width: calc(var(--sidebar-width) - 24px); height: calc(100dvh - 24px); border-radius: 24px; }
-.c2000-ui .sidebar .menu-search { margin-inline: 12px; background: var(--glass-control); border: 1px solid var(--glass-edge-low); border-radius: 14px; }
+.c2000-ui :is(.header-menu,.theme-toggle,.account) .icon, .login-page .theme-toggle .icon { --icon-color: currentColor; }
+.c2000-ui .account { padding-inline: 8px; }
+.c2000-ui :is(.icon-button,.avatar), .login-page .icon-button { border-radius: 50%; }
+.c2000-ui .sidebar {
+  --glass-wash: rgba(247,249,252,.68);
+  inset: 12px auto 12px 12px; width: calc(var(--sidebar-width) - 24px); height: calc(100dvh - 24px); border-radius: 26px;
+}
+[data-theme="dark"] .c2000-ui .sidebar { --glass-wash: rgba(29,35,44,.68); }
+.c2000-ui .sidebar-backdrop { background: rgba(10,16,25,.24); backdrop-filter: none; }
+.c2000-ui .sidebar .menu-search { margin-inline: 12px; background: var(--glass-control); border: 0; border-radius: 999px; }
 .c2000-ui .navigation { padding-inline: 8px; }
 .c2000-ui .sidebar-footer { margin-inline: 14px; }
-.c2000-ui :is(.nav-home,.menu-category,.menu-link) { border-radius: 12px; }
-.c2000-ui :is(.nav-home,.menu-link).active { background: var(--glass-selected); box-shadow: 0 1px 4px rgba(16,35,65,.06), inset 0 1px 0 var(--glass-edge); color: var(--accent); }
-.c2000-ui .menu-category:hover, .c2000-ui .menu-link:hover { background: var(--glass-control); }
+.c2000-ui :is(.nav-home,.menu-category,.menu-link) { border-radius: 14px; }
+.c2000-ui :is(.nav-home,.menu-link).active { background: var(--glass-selected); box-shadow: none; color: var(--accent); }
+.c2000-ui :is(.menu-category,.menu-link):hover { background: var(--glass-control); }
+.c2000-ui :is(.account-menu,.theme-control,.modal,.ui-modal,dialog,.toast) { --glass-wash: rgba(248,250,253,.68); border-radius: 24px; }
+[data-theme="dark"] .c2000-ui :is(.account-menu,.theme-control,.modal,.ui-modal,dialog,.toast) { --glass-wash: rgba(32,38,47,.68); }
+.c2000-ui .topbar .theme-picker > .theme-control { border: 0; border-radius: 24px; }
+.c2000-ui .theme-control button, .login-page .theme-control button { color: var(--glass-muted); border-radius: 999px; }
+.c2000-ui .theme-control button[aria-pressed="true"], .login-page .theme-control button[aria-pressed="true"] { background: var(--glass-selected); color: var(--glass-ink); box-shadow: none; }
 
-/* Content is stable and readable; repeated cards do not get GPU lenses or nested blur. */
+/* Standard content material: no nested blur, optical edges or extra GPU lenses. */
 .c2000-ui :is(.ui-card,.cbi-section,.ifacebox,.ui-section) {
-  background: var(--surface); background: color-mix(in srgb, var(--surface) 94%, transparent);
-  border: 1px solid var(--border-soft); border-radius: 18px; box-shadow: var(--content-shadow);
+  background: var(--surface); background: color-mix(in srgb, var(--surface) 95%, transparent);
+  border: 1px solid var(--border-soft); border-radius: 22px; box-shadow: var(--content-shadow);
 }
-.c2000-ui .cbi-section .cbi-section { background: var(--surface-soft); border-radius: 12px; box-shadow: none; }
+.c2000-ui .cbi-section .cbi-section { background: var(--surface-soft); border-radius: 14px; box-shadow: none; }
 .c2000-ui .ui-icon-box { border-radius: 12px; }
 .c2000-ui :is(.ui-badge,.ifacebadge) { border-radius: 8px; }
-.c2000-ui .account-menu, .c2000-ui .modal, .c2000-ui dialog { border-radius: 22px; }
-.c2000-ui .topbar .theme-picker > .theme-control, .login-page .theme-control { border-radius: 20px; }
-.c2000-ui .topbar .theme-picker > .theme-control { background: var(--glass-fill); border: 0; box-shadow: var(--glass-shadow); }
-.c2000-ui .topbar .theme-picker > .theme-control[data-glass-state="gpu"] { background: transparent; }
-.c2000-ui .account { border-radius: 999px; padding-inline: 8px; }
-.c2000-ui :is(.icon-button,.avatar), .login-page .icon-button { border-radius: 50%; background: var(--glass-control); box-shadow: inset 0 1px 0 var(--glass-edge), 0 3px 10px rgba(0,0,0,.04); }
-.c2000-ui :is(.cbi-button,.btn,.ui-button), .login-submit { border-radius: 999px; box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 2px 5px rgba(13,36,72,.07); }
+.c2000-ui :is(.cbi-button,.btn,.ui-button), .login-submit { border-radius: 999px; box-shadow: none; }
 .c2000-ui :is(.cbi-button,.btn,.ui-button):active, .login-submit:active { transform: scale(.98); }
-.c2000-ui :is(.cbi-button,.btn,.ui-button):disabled { transform: none; box-shadow: none; }
+.c2000-ui :is(.cbi-button,.btn,.ui-button):disabled { transform: none; }
 .c2000-ui .cbi-dropdown.btn { border-radius: 12px; }
-.c2000-ui :is(.cbi-dropdown > ul.dropdown,.ui-dropdown-panel) { border-radius: 14px; background: var(--surface-raised); border-color: var(--border); box-shadow: var(--glass-shadow); }
-.c2000-ui :is(.tabs,.cbi-tabmenu,.ui-tabs) { padding: 5px; gap: 4px; border: 1px solid var(--border-soft); border-radius: 15px; background: var(--surface-soft); }
-.c2000-ui :is(.tabs,.cbi-tabmenu) > li > a, .c2000-ui .ui-tabs [role="tab"] { border-radius: 11px; border: 0; }
-.c2000-ui :is(.tabs > li.active,.cbi-tabmenu > .cbi-tab) > a, .c2000-ui .ui-tabs [aria-selected="true"] { background: var(--surface-raised); color: var(--accent); box-shadow: 0 2px 5px rgba(22,42,74,.09); }
-.c2000-ui :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="submit"]):not([type="reset"]),select,textarea,.ui-control) { border-radius: 10px; }
+.c2000-ui :is(.cbi-dropdown > ul.dropdown,.ui-dropdown-panel) { border-radius: 18px; }
+.c2000-ui :is(.tabs,.cbi-tabmenu,.ui-tabs) { padding: 4px; gap: 3px; border: 0; border-radius: 14px; background: var(--surface-soft); }
+.c2000-ui :is(.tabs,.cbi-tabmenu) > li > a, .c2000-ui .ui-tabs [role="tab"] { border-radius: 10px; border: 0; }
+.c2000-ui :is(.tabs > li.active,.cbi-tabmenu > .cbi-tab) > a, .c2000-ui .ui-tabs [aria-selected="true"] { background: var(--surface-raised); color: var(--text); box-shadow: 0 1px 4px rgba(22,42,74,.10); }
+.c2000-ui :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="submit"]):not([type="reset"]),select,textarea,.ui-control) { border-radius: 12px; }
 .c2000-ui .menu-search input { border: 0; box-shadow: none; background: none; }
 .c2000-ui :is(input[type="checkbox"],input[type="radio"],input[type="range"]) { accent-color: var(--accent); }
-.c2000-ui :is(.cbi-tooltip,.toast,.ui-alert,.alert-message) { border-radius: 14px; }
-.c2000-ui .cbi-page-actions { border-radius: 18px; padding: 12px; gap: 8px; }
+.c2000-ui :is(.cbi-tooltip,.ui-alert,.alert-message) { border-radius: 14px; }
+.c2000-ui .cbi-page-actions { --glass-wash: rgba(248,250,253,.62); border-radius: 22px; padding: 12px; gap: 8px; }
+[data-theme="dark"] .c2000-ui .cbi-page-actions { --glass-wash: rgba(32,38,47,.62); }
 .c2000-ui .table .th, .c2000-ui table th { background: var(--surface-soft); }
 .c2000-ui :is(.ui-progress,.cbi-progressbar,.status-ring-track) { border-color: transparent; }
 
-.login-card { position: relative; border-radius: 30px; --glass-veil: rgba(246,249,255,.68); --text: #142235; --text-secondary: #243850; --text-muted: #293d55; }
-[data-theme="dark"] .login-card { --glass-veil: rgba(13,20,32,.68); --text: #f4f7fd; --text-secondary: #e3ebf8; --text-muted: #d5deed; }
-.login-page .login-card { border: 0; background: var(--glass-fill); }
-.login-page .login-card[data-glass-state="gpu"] { background: transparent; }
-.login-mark { border-radius: 16px; background: var(--glass-control); box-shadow: inset 0 1px 0 var(--glass-edge); }
-.login-eyebrow { letter-spacing: 1.4px; }
-.login-card h1 { letter-spacing: -.8px; }
-.login-field input { border-radius: 14px; border-color: var(--glass-edge-low); background: var(--glass-control); }
-[data-theme="dark"] .login-field input { border-color: rgba(255,255,255,.28); background: rgba(10,16,25,.38); }
-.login-password button { border-radius: 12px; }
-.login-submit { margin-top: 10px; }
-.c2000-ui [data-glass][data-glass-state="gpu"], .login-page [data-glass][data-glass-state="gpu"] {
-  /* GPU readiness is a rendering contract; LuCI specificity must not cover this layer. */
-  background: transparent !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+/* A broad, lightly frosted lens exposes the wallpaper without compromising form labels. */
+.login-page .login-card {
+  position: relative; border-radius: 32px; border: 0;
+  --glass-wash: rgba(248,250,255,.46); --text: #172332; --text-secondary: #26374c; --text-muted: #304258;
+  box-shadow: 0 16px 48px rgba(0,0,0,.15);
 }
+[data-theme="dark"] .login-page .login-card {
+  --glass-wash: rgba(13,20,30,.42); --text: #fff; --text-secondary: #f4f6fa; --text-muted: #e2e8f0;
+}
+.login-page .login-card { color: var(--text); }
+.login-mark { border-radius: 50%; background: var(--glass-control); box-shadow: none; color: var(--text); }
+.login-eyebrow { letter-spacing: 1px; }
+.login-card h1 { letter-spacing: -.8px; }
+.login-field input { border-radius: 16px; border: 1px solid rgba(39,57,81,.20); background: rgba(255,255,255,.48); }
+[data-theme="dark"] .login-field input { border-color: rgba(255,255,255,.25); background: rgba(8,16,28,.28); }
+.login-password button { border-radius: 50%; }
+.login-submit { margin-top: 10px; }
+.login-page .theme-control { border-radius: 24px; }
 
 @media (max-width: 1100px) {
   .c2000-ui .sidebar { width: min(320px, calc(100vw - 24px)); transform: translateX(calc(-100% - 24px)); }
@@ -131,21 +148,25 @@ body.c2000-ui { isolation: isolate; background: var(--page); }
   .c2000-ui .sidebar .menu-search { margin-top: 20px; }
 }
 @media (max-width: 700px) {
-  body.c2000-ui { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-  .c2000-ui .mobile-nav { inset: auto 12px max(10px, env(safe-area-inset-bottom)); min-height: 72px; padding: 6px; gap: 2px; border: 0; border-radius: 28px; }
-  .c2000-ui .mobile-nav :is(a,button) { min-height: 60px; border-radius: 22px; font-size: 11px; line-height: 1.2; gap: 4px; color: var(--text-secondary); }
-  .c2000-ui .mobile-nav .icon { --icon-color: currentColor; width: 22px; height: 22px; }
-  .c2000-ui .mobile-nav :is(a,button).active { color: var(--accent); background: var(--glass-selected); box-shadow: inset 0 1px 0 var(--glass-edge); font-weight: 650; }
-  .c2000-ui .cbi-page-actions { bottom: calc(92px + env(safe-area-inset-bottom)); }
-  .login-card { border-radius: 26px; }
+  body.c2000-ui { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+  .c2000-ui .mobile-nav {
+    inset: auto 0 max(12px, env(safe-area-inset-bottom)); margin-inline: auto;
+    width: min(440px, calc(100% - 24px)); min-height: 68px; padding: 5px; gap: 0;
+    border: 0; border-radius: 999px;
+  }
+  .c2000-ui .mobile-nav :is(a,button) {
+    min-width: 0; min-height: 58px; padding: 5px 2px; border-radius: 999px;
+    font-size: 10px; line-height: 1.2; gap: 3px; color: var(--glass-ink);
+  }
+  .c2000-ui .mobile-nav .icon { --icon-color: currentColor; width: 23px; height: 23px; }
+  .c2000-ui .mobile-nav :is(a,button).active { color: var(--accent); background: var(--glass-selected); box-shadow: none; font-weight: 650; }
+  .c2000-ui .cbi-page-actions { bottom: calc(90px + env(safe-area-inset-bottom)); }
+  .login-page .login-card { border-radius: 28px; }
 }
 @media (prefers-contrast: more) {
-  :root { --glass-veil: rgba(248,250,255,.94); --glass-edge-low: #60728a; }
-  :root[data-theme="dark"] { --glass-veil: rgba(14,20,30,.95); --glass-edge-low: #9ba9bb; }
-  .login-card { --glass-veil: rgba(248,250,255,.94); }
-  [data-theme="dark"] .login-card { --glass-veil: rgba(14,20,30,.95); }
-  .c2000-ui, .c2000-ui :is(.header-menu,.theme-toggle,.account) { --glass-veil: rgba(248,250,255,.94); }
-  [data-theme="dark"] .c2000-ui, [data-theme="dark"] .c2000-ui :is(.header-menu,.theme-toggle,.account) { --glass-veil: rgba(14,20,30,.95); }
+  .c2000-ui [data-glass], .login-page [data-glass] { --glass-wash: rgba(248,250,255,.96); --glass-edge: #65758a; }
+  [data-theme="dark"] .c2000-ui [data-glass], [data-theme="dark"] .login-page [data-glass] { --glass-wash: rgba(16,22,32,.96); --glass-edge: #a6b4c6; }
+  [data-glass]::after { border-color: var(--glass-edge); }
 }
 @media (prefers-reduced-transparency: reduce), (forced-colors: active) {
   .c2000-ui [data-glass], .login-page [data-glass] { background: var(--surface) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
