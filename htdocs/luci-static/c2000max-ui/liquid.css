@@ -232,6 +232,8 @@ body.c2000-ui { isolation: isolate; background: var(--page); }
   background: linear-gradient(145deg,rgba(255,255,255,.12),transparent 45%),var(--glass-wash);
 }
 .c2000-ui .theme-picker { border: 0; box-shadow: none; background: none; }
+.c2000-ui #account-button, .c2000-ui #account-button:hover, .c2000-ui #account-button:active { box-shadow: var(--glass-shadow); border-radius: 999px; }
+.c2000-ui :is(.header-menu,.theme-toggle,.account)[data-glass]::after { border-color: color-mix(in srgb,var(--text) 12%,transparent); }
 .c2000-ui .mobile-nav.has-glass-selection::before {
   content: ''; position: absolute; left: 0; top: 0; z-index: 4; pointer-events: none;
   width: var(--lens-width); height: var(--lens-height); border-radius: 999px;
