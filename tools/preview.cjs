@@ -33,7 +33,11 @@ http.createServer(async(req,res)=>{
   else if(relative==='/luci-static/resources/cbi.js'||relative.startsWith('/cgi-bin/luci/admin/translations/')) {res.writeHead(200,{'Content-Type':'text/javascript'}).end('/* preview runtime */');return;}
   else if(relative==='/forms')file=path.join(preview,'forms.html');
   else if(relative.startsWith('/cgi-bin/luci/')){
-   res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}).end('<meta name="viewport" content="width=device-width"><title>LuCI 页面入口</title><body style="font:16px/1.8 system-ui;padding:40px;max-width:720px;margin:auto"><h1>'+esc(relative.includes('wireless')?'无线':relative.includes('qmodem')?'QModem 模组详情':'LuCI 页面')+'</h1><p>主题已跳转到设备上的实际 LuCI 路径：</p><code>'+esc(relative)+'</code><p>安装到路由器后，此处显示该页面或插件的实际内容。</p><a href="/">返回首页预览</a></body>');return;
+   const title=relative.includes('wireless')?'无线':relative.includes('qmodem')?'QModem 模组详情':'DHCP';
+   let html=await fs.readFile(path.join(preview,'dashboard.html'),'utf8');
+   const start=html.indexOf('<div id="view">'),end=html.indexOf('<footer class="main-footer"');
+   html=html.slice(0,start)+'<div id="view"><div class="cbi-map"><h2>'+title+'</h2><p>这是原生页面交互测试夹具；安装到设备后使用真实 LuCI 页面。</p><label class="cbi-value">名称 <input aria-label="测试名称" value="default"></label><div style="height:950px;background:linear-gradient(#78b6e433,#ff9f6833)"></div><p>页面底部</p><button class="cbi-button" id="test-modal">打开测试弹窗</button><dialog id="fixture-modal"><p>原生弹窗</p><button onclick="this.closest(\'dialog\').close()">关闭</button></dialog><script>document.getElementById("test-modal").onclick=()=>document.getElementById("fixture-modal").showModal();</script></div></div></div>'+html.slice(end);
+   res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'}).end(html);return;
   } else {res.writeHead(404).end();return;}
   file=path.resolve(file);
   if(!file.startsWith(path.resolve(root)+path.sep)){res.writeHead(403).end();return;}

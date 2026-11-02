@@ -25,6 +25,7 @@ html[data-motion-ready] .c2000-ui :is(.icon-button,.account,.nav-home,.menu-cate
 .c2000-ui .mobile-nav-items > :is(a,button) { position: relative; cursor: pointer; }
 .c2000-ui .mobile-nav .is-lens-target { cursor: grab; }
 .c2000-ui .mobile-nav.is-dragging, .c2000-ui .mobile-nav.is-dragging * { cursor: grabbing; }
+.c2000-ui .mobile-nav[data-input="pointer"] :is(a,button):focus { outline: none; }
 .c2000-ui .mobile-nav .icon { transition: color 160ms ease; }
 .c2000-ui .mobile-nav.has-lens-preview .active:not(.is-lens-target) { color: var(--glass-ink); font-weight: 500; }
 .c2000-ui .mobile-nav .is-lens-target { color: var(--accent); font-weight: 650; }

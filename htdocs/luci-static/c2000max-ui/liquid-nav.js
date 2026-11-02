@@ -1,6 +1,7 @@
 /* Scrubbable navigation. Real anchors retain navigation, modifiers and keyboard activation. */
 (function () {
   'use strict';
+  if (document.documentElement.hasAttribute('data-content-frame')) return;
   var nav = document.querySelector('.mobile-nav'), itemsRoot = nav?.querySelector('.mobile-nav-items');
   if (!itemsRoot) return;
   var reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -103,6 +104,7 @@
   nav.addEventListener('pointerdown', function (event) {
     if (event.button !== 0 || event.isPrimary === false || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || nav.closest('[inert]')) return;
     var index = indexOf(event.target); if (index < 0 || items[index].disabled) return;
+    nav.dataset.input = 'pointer';
     measure();
     gesture = { id: event.pointerId, x: event.clientX, y: event.clientY, start: pose.x, lastX: event.clientX, lastTime: performance.now(), dragged: false, index: index };
     nav.classList.add('is-nav-pressed'); preview(index, 1.12, false);
@@ -136,7 +138,6 @@
     preview(index, hover >= 0 ? 1.04 : 1, false);
     swallowClick = true; setTimeout(function () { swallowClick = false; }, 0);
     if (nav.closest('[inert]')) return;
-    items[index].focus({ preventScroll: true });
     if (index !== activeIndex() || items[index].matches('button')) items[index].click();
   }, { passive: false });
   window.addEventListener('pointercancel', function (event) { if (gesture?.id === event.pointerId) cancelGesture(); }, { passive: true });
@@ -148,6 +149,7 @@
   nav.addEventListener('focusin', function (event) { focus = event.target.matches(':focus-visible') ? indexOf(event.target) : -1; if (!gesture) restore(false); });
   nav.addEventListener('focusout', function (event) { if (!itemsRoot.contains(event.relatedTarget)) { focus = -1; if (!gesture) restore(false); } });
   nav.addEventListener('keydown', function (event) {
+    nav.dataset.input = 'keyboard';
     if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     var index = indexOf(event.target), next;
     if (index < 0) return;

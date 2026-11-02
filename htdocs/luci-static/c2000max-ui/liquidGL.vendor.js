@@ -10,6 +10,7 @@
  * C2000MAX patch: optional opacity follows the real foreground panel during transitions.
  * C2000MAX patch: embed document SVG symbols when rasterising standalone icon images.
  * C2000MAX patch: clear glass uses bilinear sampling without an extra five-tap blur.
+ * C2000MAX patch: fast scene bootstrap, same-origin content frames and visual viewport sync.
  */
 
 (() => {
@@ -1532,7 +1533,18 @@
     Painter.prototype.replaced = function (node) {
       const el = node.el;
       const tag = el.tagName;
-      if (tag === "VIDEO" || tag === "IFRAME") return;
+      if (tag === "VIDEO") return;
+      if (tag === "IFRAME") {
+        const snapshot = el._liquidFrameSnapshot;
+        if (!snapshot) return;
+        const box = boxFor("content-box", node, node.style);
+        const scale = snapshot.scale;
+        this.ctx.save(); this.space(node.m);
+        this.ctx.drawImage(snapshot.canvas, snapshot.x * scale, snapshot.y * scale,
+          snapshot.width * scale, snapshot.height * scale, box.x, box.y, box.w, box.h);
+        this.ctx.restore();
+        return;
+      }
 
       let source = null;
       if (tag === "IMG") {
@@ -5474,10 +5486,12 @@ fn fs() -> @location(0) vec4<f32> {
       engine = "auto",
       anchor = document.body,
       snapshotBlur = 0,
+      bootstrap = false,
     ) {
       this._anchor = anchor;
       this._engine = engine;
       this._snapshotBlur = snapshotBlur;
+      this._bootstrap = bootstrap;
       this._destroyed = false;
       this._cleanups = [];
       this._naughtyQueued = false;
@@ -5563,6 +5577,14 @@ fn fs() -> @location(0) vec4<f32> {
         },
         { passive: true },
       );
+      if (window.visualViewport) {
+        for (const type of ["resize", "scroll"]) listen(this, visualViewport, type, () => {
+          this._resizeCanvas();
+          this.lenses.forEach((lens) => lens.updateMetrics());
+          this.render();
+          onResize();
+        }, { passive: true });
+      }
       this._cleanups.push(() => {
         clearTimeout(scrollTimeout);
         onResize.cancel();
@@ -5741,6 +5763,7 @@ fn fs() -> @location(0) vec4<f32> {
       ) => {
         if (this._destroyed) return false;
         const generation = this._captureGeneration || 0;
+        const bootstrap = this._bootstrap && !this.hasTexture;
         try {
           const fullW = this.snapshotTarget.scrollWidth;
           const fullH = this.snapshotTarget.scrollHeight;
@@ -5788,7 +5811,29 @@ fn fs() -> @location(0) vec4<f32> {
 
           const naughtyIgnore = (el) =>
             ignoreElementsFunc(el) || lensElements.has(el) ||
+            (bootstrap && el !== this.snapshotTarget && !el.closest?.('#liquid-scene')) ||
             el.matches?.('input,textarea,select,[contenteditable]:not([contenteditable="false"])');
+
+          // Only our same-origin native view contributes a backdrop. Inputs and editable values stay excluded.
+          if (!bootstrap) for (const frame of this.snapshotTarget.querySelectorAll('iframe.c2000-view-frame:not([data-route-pending])')) {
+            try {
+              const child = frame.contentWindow, body = frame.contentDocument?.body;
+              if (!body || child.location.origin !== location.origin) continue;
+              const width = Math.max(child.innerWidth, body.scrollWidth);
+              const height = Math.max(child.innerHeight, body.scrollHeight, frame.contentDocument.documentElement.scrollHeight);
+              const resolution = Math.min(scale, Math.sqrt(2000000 / (width * height)), maxTex / width, maxTex / height);
+              const version = frame._liquidFrameVersion || 0;
+              const previous = frame._liquidFrameSnapshot;
+              const canvas = previous?.version === version && previous.scale === resolution && previous.fullWidth === width && previous.fullHeight === height ? previous.canvas : await NaughtyDOM.rasteriseAsync(body, {
+                width, height, scale: resolution, ignoreElements: (el) =>
+                  el.matches?.('input,textarea,select,[contenteditable]:not([contenteditable="false"])') ||
+                  el.closest?.('[data-liquid-ignore]'),
+              });
+              if (!frame.isConnected) continue;
+              frame._liquidFrameSnapshot = { canvas, scale: resolution, x: child.scrollX, y: child.scrollY,
+                width: child.innerWidth, height: child.innerHeight, version, fullWidth: width, fullHeight: height };
+            } catch (_) { frame._liquidFrameSnapshot = null; }
+          }
 
           let backgroundColor = null;
           if (
@@ -5834,6 +5879,9 @@ fn fs() -> @location(0) vec4<f32> {
           if (!this._uploadTexture(snapCanvas, !!backgroundColor)) {
             throw new Error("liquidGL: snapshot could not be uploaded.");
           }
+          // The glass is already visible. Let initial content transitions paint
+          // before rasterising the detailed page, without delaying the lens itself.
+          if (bootstrap) setTimeout(() => { if (!this._destroyed) this.captureSnapshot(); }, 500);
           return true;
         } catch (e) {
           if (this._destroyed) return false;
@@ -6378,11 +6426,8 @@ fn fs() -> @location(0) vec4<f32> {
         this._resizeCanvas();
       }
 
-      const canvasRect = this.canvas.getBoundingClientRect();
-      if (canvasRect.left || canvasRect.top) {
-        this.canvas.style.left = `${parseFloat(this.canvas.style.left) - canvasRect.left}px`;
-        this.canvas.style.top = `${parseFloat(this.canvas.style.top) - canvasRect.top}px`;
-      }
+      // Keep the canvas in its fixed anchor. Moving it to viewport zero mid-frame
+      // breaks lens/content alignment while Android browser chrome expands or collapses.
       this._frameCanvasRect = this.canvas.getBoundingClientRect();
 
       if (this._isScrolling) {
@@ -8733,6 +8778,7 @@ fn fs() -> @location(0) vec4<f32> {
   /* --------------------------------------------------
    *  Public API
    * ------------------------------------------------*/
+  const contextSupport = new Map();
   window.liquidGL = function (userOptions = {}) {
     const defaults = {
       target: ".liquidGL",
@@ -8798,14 +8844,19 @@ fn fs() -> @location(0) vec4<f32> {
       "gpu" in navigator;
     let hasWebGL = false;
     const glChain = chain.filter((c) => c !== "webgpu");
-    if (glChain.length) {
+    if (!hasWebGPU && contextSupport.has(options.engine)) {
+      hasWebGL = contextSupport.get(options.engine);
+    } else if (!hasWebGPU && glChain.length) {
       const testCanvas = document.createElement("canvas");
       for (const name of glChain) {
-        if (testCanvas.getContext(name)) {
+        const context = testCanvas.getContext(name);
+        if (context) {
           hasWebGL = true;
+          context.getExtension('WEBGL_lose_context')?.loseContext();
           break;
         }
       }
+      contextSupport.set(options.engine, hasWebGL);
     }
     const noGPU = !hasWebGPU && !hasWebGL;
 
@@ -8866,6 +8917,7 @@ fn fs() -> @location(0) vec4<f32> {
           options.engine,
           anchor,
           options.snapshotBlur,
+          options.bootstrap,
         );
         renderer._zIndex = zIndex;
         renderer.useExternalTicker =

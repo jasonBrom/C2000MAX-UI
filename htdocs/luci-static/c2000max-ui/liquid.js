@@ -1,7 +1,8 @@
 /* Shared live-content lenses for navigation; isolated wallpaper lenses for authentication. */
 (function () {
   'use strict';
-  var vendor = new URL('liquidGL.vendor.js?v=3.0.0-c2000.4', document.currentScript.src).href;
+  var vendor = new URL('liquidGL.vendor.js?v=3.0.0-c2000.6', document.currentScript.src).href;
+  if (document.documentElement.hasAttribute('data-content-frame')) return;
   if (!document.getElementById('liquid-scene')) return;
   var loginPage = document.body.classList.contains('login-page');
   var reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -10,7 +11,6 @@
   var active = new Map(), overlays = new Map(), serial = 0, pending = 0, refreshTimer = 0, geometryRaf = 0, loading = false, failed = false;
   var selectors = '.login-card,.mobile-nav,.liquid-selection,.sidebar,.header-menu,.theme-toggle,.account,.account-menu,.theme-control,.modal,.ui-modal,dialog[open],.cbi-page-actions,.cbi-dropdown > ul.dropdown,.ui-dropdown-panel,.toast';
   var appearance = palette();
-  var enhancementAfter = performance.now() + (loginPage ? 0 : 800);
   function palette() { return document.documentElement.dataset.theme + ':' + document.documentElement.dataset.skin; }
   function permitted() {
     return !document.hidden && !reduced.matches && !transparency.matches && !forced.matches &&
@@ -85,6 +85,7 @@
     try {
       entry.lens = window.liquidGL({
         target: '#' + pane.id, snapshot: loginPage ? '#liquid-scene' : 'body', content: selection ? '.mobile-nav-items' : false, zIndex: 0,
+        bootstrap: !loginPage,
         resolution: loginPage ? Math.min(devicePixelRatio || 1, 1.25) : Math.max(.1, Math.min(1, Math.sqrt(2000000 / area))),
         // Shallow optics follow the upstream menu-bar lens; CSS supplies only a legibility wash.
         refraction: selection ? .016 * opticalScale : control ? .012 : .008,
@@ -123,7 +124,10 @@
     document.querySelectorAll('.sidebar-backdrop,.icon-definitions').forEach(function (element) { element.setAttribute('data-liquid-ignore', ''); });
     if (!loginPage) {
       var limit = Math.max(.1, Math.min(1, Math.sqrt(2000000 / Math.max(1, document.body.scrollWidth * document.body.scrollHeight))));
-      if (Array.from(active.values()).some(function (entry) { return !entry.local && entry.lens?.renderer?._snapshotResolution > limit + .02; })) reset();
+      active.forEach(function (entry) {
+        var renderer = entry.lens?.renderer;
+        if (!entry.local && renderer && renderer._snapshotResolution > limit + .02) renderer._snapshotResolution = limit;
+      });
     }
     var panels = Array.from(document.querySelectorAll(selectors));
     panels.forEach(function (panel) {
@@ -144,17 +148,15 @@
     if (!permitted() || failed) { reset(); return; }
     active.forEach(function (entry, panel) { if (!candidates.includes(panel) || (!entry.local && entry.layer !== layerFor(panel))) remove(panel, entry); });
     if (!candidates.length) return;
-    // Let first-paint resource transitions finish before compiling/rasterising the GPU enhancement.
-    if (!active.size && !loginPage && performance.now() < enhancementAfter) {
-      pending = setTimeout(reconcile, 120); return;
-    }
     if (!window.liquidGL) {
       if (loading) return;
       loading = true;
-      var tag = document.createElement('script'); tag.src = vendor;
-      tag.onload = function () { loading = false; schedule(); };
-      tag.onerror = function () { loading = false; failed = true; reset(); };
-      document.head.append(tag); return;
+      var tag = document.querySelector('script[data-liquid-vendor]');
+      var added = !tag;
+      if (!tag) { tag = document.createElement('script'); tag.src = vendor; tag.dataset.liquidVendor = ''; }
+      tag.addEventListener('load', function () { loading = false; reconcile(); }, { once: true });
+      tag.addEventListener('error', function () { loading = false; failed = true; reset(); }, { once: true });
+      if (added) document.head.append(tag); return;
     }
     candidates.forEach(function (panel) { if (!active.has(panel) && !failed) attach(panel); });
     trackGeometry();
@@ -187,10 +189,24 @@
   document.addEventListener('visibilitychange', function () { if (document.hidden) reset(); else schedule(); });
   document.addEventListener('c2000-motion', trackGeometry);
   document.addEventListener('transitionrun', trackGeometry);
+  document.addEventListener('c2000-view-update', function () {
+    var renderers = new Set();
+    active.forEach(function (entry) { if (!entry.local && entry.lens?.renderer) renderers.add(entry.lens.renderer); });
+    renderers.forEach(function (renderer) {
+      if (renderer._capturing) renderer._captureGeneration = (renderer._captureGeneration || 0) + 1;
+      renderer.captureSnapshot();
+    });
+    trackGeometry(); schedule();
+  });
   window.addEventListener('resize', function () { trackGeometry(); schedule(); }, { passive: true });
   window.addEventListener('scroll', function () { trackGeometry(); schedule(); }, { passive: true });
+  if (window.visualViewport) ['resize','scroll'].forEach(function (type) {
+    visualViewport.addEventListener(type, function () {
+      cancelAnimationFrame(geometryRaf); geometryRaf = 0; geometry(); schedule();
+    }, { passive: true });
+  });
   window.addEventListener('pagehide', function () { clearTimeout(pending); clearTimeout(refreshTimer); cancelAnimationFrame(geometryRaf); pending = refreshTimer = geometryRaf = 0; reset(); });
   window.addEventListener('pageshow', schedule);
   if (navigator.connection) navigator.connection.addEventListener('change', function () { reset(); schedule(); });
-  if ('requestIdleCallback' in window) requestIdleCallback(schedule, { timeout: 1000 }); else schedule();
+  reconcile();
 })();

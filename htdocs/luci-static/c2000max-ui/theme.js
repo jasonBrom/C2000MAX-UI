@@ -64,6 +64,7 @@
     preference = value;
     try { localStorage.setItem(key, value); } catch {}
     apply();
+    document.dispatchEvent(new CustomEvent('c2000-appearance-change', { detail: value }));
   }
   function setSkin(value) {
     if(!skinNames[value])return;
