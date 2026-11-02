@@ -81,13 +81,14 @@ const base = 'http://127.0.0.1:4179/cgi-bin/luci/admin/status/c2000max';
         const id = document.querySelector('.mobile-nav').dataset.glassPane;
         Object.assign(window.opticalRenderer.lenses.find(lens => lens.el.id === id).options, window.opticalSettings);
       });
-      await page.mouse.move(nav.x + 60, nav.y + nav.height / 2);
+      await page.mouse.move(nav.x + 60, nav.y + nav.height / 2); await page.mouse.down();
       await page.mouse.move(nav.x + nav.width - 60, nav.y + nav.height / 2, { steps: 12 });
       await page.waitForFunction(() => {
         const id = document.querySelector('.mobile-nav').dataset.glassPane;
         const lens = window.opticalRenderer.lenses.find(lens => lens.el.id === id);
         return lens._fluid?.inside && Math.hypot(lens._fluid.value[2], lens._fluid.value[3]) > .00001;
       }, null, { timeout: 2000 });
+      await page.mouse.move(nav.x+60,nav.y+nav.height/2,{steps:12}); await page.mouse.up();
       await page.goto('http://127.0.0.1:4179/login' + (engine === 'auto' ? '' : '?liquidGL-engine=' + engine));
       await page.waitForFunction(() => document.querySelector('.login-card')?.dataset.glassState === 'gpu');
       // Keep highlights visible while checking that a stable scene does not submit new GPU frames.

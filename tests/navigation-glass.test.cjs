@@ -16,7 +16,7 @@ async function centre(locator) {
     await page.goto(base);
     await page.evaluate(() => { C2000Theme.setSkin('max'); C2000Theme.set('light'); window.navDocumentToken = 'same-document'; });
     await ready(page);
-    assert.equal(await page.locator('.liquid-overlay canvas').count(), 1, 'moving lens shares the base canvas');
+    assert.equal(await page.locator('.liquid-overlay canvas').count(), 2, 'base and prepared drawer keep their independent layers');
     assert.equal(await page.locator('.mobile-nav > canvas').count(), 1, 'navigation has one locally anchored optical canvas');
     assert.equal(await page.locator('.mobile-nav-items').evaluate(e => getComputedStyle(e).maskImage), 'none', 'foreground labels must not be rasterised or masked');
     assert.equal(await page.locator('.mobile-nav-items input').count(), 0, 'only navigation content is supplied to the lens');
@@ -24,12 +24,12 @@ async function centre(locator) {
     const start = await lens.boundingBox();
     await links.nth(2).hover(); await page.waitForTimeout(700);
     const hovered = await lens.boundingBox();
-    assert.ok(hovered.x > start.x + 140 && hovered.height > start.height, 'hover moves and lifts the lens');
+    assert.ok(Math.abs(hovered.x-start.x)<1 && Math.abs(hovered.height-start.height)<1, 'hover must not move or lift the selected lens');
     assert.equal(await links.first().getAttribute('aria-current'), 'page', 'hover previews do not claim a different route');
     assert.equal(await links.nth(2).getAttribute('aria-current'), null);
-    assert.equal(await links.nth(2).getAttribute('class'), 'is-lens-target');
+    assert.equal(await links.first().evaluate(e=>e.classList.contains('is-lens-target')),true);
     // The actual displayed refracted symbol must contain blue ink, including SVG <use> content.
-    const box = await links.nth(2).locator('svg').boundingBox();
+    const box = await links.first().locator('svg').boundingBox();
     const png = await page.screenshot({ clip: { x: box.x - 3, y: box.y - 3, width: box.width + 6, height: box.height + 6 } });
     const ink = await page.evaluate(async url => {
       const img = new Image(); img.src = url; await img.decode();
@@ -126,6 +126,6 @@ async function centre(locator) {
     await demo.screenshot({ path: 'build/preview/navigation-demo-desktop.png' });
     const demoVideo = demo.video(); await showcase.close();
     if (demoVideo) await fs.copyFile(await demoVideo.path(), 'build/preview/navigation-demo.webm');
-    console.log('PASS: clear refracted SVG ink, animated hover/drag/stretch/snap, native route activation, no duplicate clicks, modal preservation, keyboard, touch cancellation/scrolling and reduced motion');
+    console.log('PASS: clear refracted SVG ink, anchored hover, animated drag/stretch/snap, native route activation, no duplicate clicks, modal preservation, keyboard, touch cancellation/scrolling and reduced motion');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -12,7 +12,7 @@ const ready = (page, selector) => page.waitForFunction(s => document.querySelect
   await page.evaluate(() => { C2000Theme.setSkin('max'); C2000Theme.set('dark'); });
   for (const selector of ['.mobile-nav', '.header-menu', '.theme-toggle', '.account']) await ready(page, selector);
   await ready(page, '.liquid-selection');
-  assert.equal(await page.locator('.liquid-overlay canvas').count(), 1, 'top controls share the base canvas');
+  assert.equal(await page.locator('.liquid-overlay canvas').count(), 2, 'top controls share the base canvas and the drawer is prepared');
   assert.equal(await page.locator('.mobile-nav > canvas').count(), 1, 'navigation optics stay inside the fixed navigation surface');
   assert.equal(await page.locator('.mobile-nav .active .symbol-selected').evaluate(el => getComputedStyle(el).opacity), '1');
   assert.equal(await page.locator('.mobile-nav .active .symbol-outline').evaluate(el => getComputedStyle(el).opacity), '0');
@@ -78,6 +78,6 @@ const ready = (page, selector) => page.waitForFunction(s => document.querySelect
   const video = page.video();
   await context.close();
   if (video) { const path = await video.path(); await fs.copyFile(path, 'build/preview/liquid-motion.webm'); }
-  console.log('PASS: five real control/selection lenses share a canvas; selected symbols, held press/release, rapid popup reversal, inert exit, drawer/selection motion, live refraction and reduced-motion cleanup');
+  console.log('PASS: real control/selection lenses and prepared layers; selected symbols, held press/release, rapid popup reversal, inert exit, drawer/selection motion, live refraction and reduced-motion cleanup');
  } finally { await browser.close(); }
 })().catch(e => { console.error(e); process.exitCode = 1; });

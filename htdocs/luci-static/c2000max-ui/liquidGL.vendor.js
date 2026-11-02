@@ -1984,6 +1984,10 @@
 
       const ops = [];
       emitStack(stack, ops);
+      // Product backdrops may keep colour, geometry and images without ghost text.
+      if (opts.includeText === false) {
+        for (let i = ops.length - 1; i >= 0; i--) if (ops[i].t === OP_TEXT) ops.splice(i, 1);
+      }
 
       let base = [scale, 0, 0, scale, -root.x * scale, -root.y * scale];
       if (!root.untransformed) {
@@ -5488,11 +5492,13 @@ fn fs() -> @location(0) vec4<f32> {
       anchor = document.body,
       snapshotBlur = 0,
       bootstrap = false,
+      snapshotText = true,
     ) {
       this._anchor = anchor;
       this._engine = engine;
       this._snapshotBlur = snapshotBlur;
       this._bootstrap = bootstrap;
+      this._snapshotText = snapshotText;
       this._destroyed = false;
       this._cleanups = [];
       this._naughtyQueued = false;
@@ -5830,6 +5836,7 @@ fn fs() -> @location(0) vec4<f32> {
                 width, height, scale: resolution, ignoreElements: (el) =>
                   el.matches?.('input,textarea,select,[contenteditable]:not([contenteditable="false"])') ||
                   el.closest?.('[data-liquid-ignore]'),
+                includeText: this._snapshotText,
               });
               if (!frame.isConnected) continue;
               frame._liquidFrameSnapshot = { canvas, scale: resolution, x: child.scrollX, y: child.scrollY,
@@ -5860,6 +5867,7 @@ fn fs() -> @location(0) vec4<f32> {
               scale: scale,
               backgroundColor,
               ignoreElements: naughtyIgnore,
+              includeText: this._snapshotText,
             },
           );
 
@@ -8790,6 +8798,7 @@ fn fs() -> @location(0) vec4<f32> {
       snapshot: "body",
       resolution: 2.0,
       snapshotBlur: 0,
+      snapshotText: true,
       engine: "auto",
       zIndex: undefined,
       content: undefined,
@@ -8913,6 +8922,7 @@ fn fs() -> @location(0) vec4<f32> {
           candidate.snapshotTarget === snapshotTarget &&
           candidate._anchor === anchor &&
           candidate._snapshotBlur === options.snapshotBlur &&
+          candidate._snapshotText === options.snapshotText &&
           candidate._zIndex === zIndex,
       );
       if (!renderer) {
@@ -8923,6 +8933,7 @@ fn fs() -> @location(0) vec4<f32> {
           anchor,
           options.snapshotBlur,
           options.bootstrap,
+          options.snapshotText,
         );
         renderer._zIndex = zIndex;
         renderer.useExternalTicker =

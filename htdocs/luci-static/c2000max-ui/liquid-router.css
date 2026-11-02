@@ -5,6 +5,7 @@
 .c2000-view-frame[data-route-pending] { position: absolute; visibility: hidden; pointer-events: none; }
 .has-content-frame .main-footer { display: none; }
 body.content-modal-open { overflow: hidden; }
+body.has-content-frame { overflow-x: clip; }
 html[data-content-frame], html[data-content-frame] body.c2000-ui {
   height: auto; min-height: 0; padding: 0; margin: 0; background: transparent !important;
 }
@@ -12,7 +13,7 @@ html[data-content-frame] { overflow: hidden; }
 html[data-content-frame] body.c2000-ui { overflow: visible !important; }
 [data-content-frame] body > :is(.brand,.header-menu,.sidebar,.sidebar-backdrop,.mobile-nav,.skip-link),
 [data-content-frame] :is(.topbar,.landscape,.liquid-scene) { display: none !important; }
-[data-content-frame] body.c2000-ui .main { margin: 0; padding: 0; min-height: 0; height: auto; background: transparent; }
+[data-content-frame] body.c2000-ui .main { margin: 0; padding: 0 var(--shell-inset-right, 0px) 0 var(--shell-inset-left, 0px); min-height: 0; height: auto; background: transparent; }
 [data-content-frame] .luci-content { margin: 0; }
 [data-content-frame] .main-footer { margin-bottom: 0; }
 [data-content-frame] #modal_overlay {

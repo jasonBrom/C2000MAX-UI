@@ -12,17 +12,17 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#111111">
 <title>C2000MAX · 登录</title>
-<script src="{{ media }}/liquid-router.js?v=liquidGL-12"></script>
-<script src="{{ media }}/theme.js?v=liquidGL-12"></script>
+<script src="{{ media }}/liquid-router.js?v=liquidGL-13"></script>
+<script src="{{ media }}/theme.js?v=liquidGL-13"></script>
 <link rel="stylesheet" href="{{ media }}/tokens.css?v=1.0.22-r1">
 <link rel="stylesheet" href="{{ media }}/components.css?v=1.0.22-r1">
 <link rel="stylesheet" href="{{ media }}/login.css?v=1.0.22-r1">
-<link rel="stylesheet" href="{{ media }}/liquid-router.css?v=liquidGL-12">
-<link rel="stylesheet" href="{{ media }}/liquid.css?v=liquidGL-12">
-<link rel="stylesheet" href="{{ media }}/liquid-motion.css?v=liquidGL-12">
-<script src="{{ media }}/login.js?v=liquidGL-12" defer></script>
-<script src="{{ media }}/liquid-motion.js?v=liquidGL-12" defer></script>
-<script src="{{ media }}/liquid.js?v=liquidGL-12" defer></script>
+<link rel="stylesheet" href="{{ media }}/liquid-router.css?v=liquidGL-13">
+<link rel="stylesheet" href="{{ media }}/liquid.css?v=liquidGL-13">
+<link rel="stylesheet" href="{{ media }}/liquid-motion.css?v=liquidGL-13">
+<script src="{{ media }}/login.js?v=liquidGL-13" defer></script>
+<script src="{{ media }}/liquid-motion.js?v=liquidGL-13" defer></script>
+<script src="{{ media }}/liquid.js?v=liquidGL-13" defer></script>
 </head>
 <body class="login-page">
 {% include('themes/c2000max-ui/icons') %}
@@ -44,7 +44,7 @@
 <form method="post" action="{{ entityencode(http.getenv('REQUEST_URI'), true) }}" autocomplete="on">
 <label class="login-field" for="luci_username">用户名<input id="luci_username" name="luci_username" type="text" value="{{ entityencode(duser ?? 'root', true) }}" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
 <label class="login-field" for="luci_password">密码<span class="login-password"><input id="luci_password" name="luci_password" type="password" autocomplete="current-password" autofocus><button type="button" id="password-toggle" aria-label="显示密码" aria-pressed="false"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#eye"/></svg></button></span></label>
-<button class="ui-button login-submit" type="submit">登录<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#arrow"/></svg></button>
+<button class="ui-button login-submit" type="submit"><span>登录</span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#arrow"/></svg></button>
 </form>
 <p class="login-footer"><a href="https://github.com/jasonBrom/C2000MAX-UI" target="_blank" rel="noopener noreferrer">C2000MAX-UI 2026 By inst.</a></p>
 </section>

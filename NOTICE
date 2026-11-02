@@ -15,7 +15,8 @@ per-lens opacity to follow foreground panel transitions, embedded document SVG s
 paint-state-aware SVG caching, bilinear clear-glass sampling without the extra five-tap blur,
 scene-only bootstrap, cached GPU capability probes, bounded same-origin native-view snapshots,
 fixed-anchor / visual-viewport alignment, bounded local optical render targets,
-and a stable specular light phase for non-animated lenses.
+a stable specular light phase for non-animated lenses, and optional text-free
+backdrop snapshots to prevent fixed-label ghosts while scrolling.
 
 Visual assets:
 - c2000max-front.png: existing C2000MAX prototype asset derived from user-supplied references.

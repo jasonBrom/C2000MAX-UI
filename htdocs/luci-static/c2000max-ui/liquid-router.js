@@ -15,7 +15,7 @@
   var vendor = document.createElement('script');
   document.documentElement.dataset.navigationInstance = Date.now().toString(36) + Math.random().toString(36).slice(2,8);
   try { document.documentElement.dataset.navigationPrevious = sessionStorage.getItem('c2000-navigation-step') || ''; } catch (_) {}
-  vendor.src = new URL('liquidGL.vendor.js?v=3.0.0-c2000.7', document.currentScript.src).href;
+  vendor.src = new URL('liquidGL.vendor.js?v=3.0.0-c2000.8', document.currentScript.src).href;
   vendor.async = true; vendor.dataset.liquidVendor = '';
   document.head.append(vendor);
   var initialized = false;
@@ -159,6 +159,14 @@
       function resize() {
         raf = 0;
         if (!frame?.isConnected || child.closed) return;
+        // Keep native CSS media queries equal to the shell's viewport. Content
+        // insets reproduce the shell's content box without subtracting its sidebar twice.
+        var box = content.getBoundingClientRect();
+        nextFrame.style.width = innerWidth + 'px';
+        nextFrame.style.marginLeft = -box.left + 'px';
+        nextFrame.style.marginRight = -(innerWidth - box.right) + 'px';
+        child.document.documentElement.style.setProperty('--shell-inset-left', box.left + 'px');
+        child.document.documentElement.style.setProperty('--shell-inset-right', (innerWidth - box.right) + 'px');
         // The outer document owns touch scrolling and browser chrome.
         var height = Math.ceil(Math.max(child.document.body.getBoundingClientRect().height,
           child.document.querySelector('.main')?.getBoundingClientRect().height || 0));

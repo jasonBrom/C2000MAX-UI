@@ -29,12 +29,12 @@ async function ready(page, selector) {
           const r = window.__liquidGLRenderer__;
           return document.body.scrollWidth * document.body.scrollHeight * r._snapshotResolution ** 2 <= 2000001;
         }));
-        assert.equal(await page.locator('.liquid-overlay canvas').count(), 1);
+        assert.equal(await page.locator('.liquid-overlay canvas').count(), width<=1100?2:1);
         if (width === 390) {
           await page.getByRole('button', { name: '菜单', exact: true }).click();
           await ready(page, '.sidebar');
           await page.locator('#close-menu').click();
-          await page.waitForFunction(() => !document.querySelector('.sidebar').hasAttribute('data-glass-pane'));
+          await page.waitForFunction(() => document.querySelector('.sidebar').dataset.glassState==='gpu' && !document.body.classList.contains('menu-open'));
           await page.waitForFunction(() => getComputedStyle(document.querySelector('.sidebar')).visibility === 'hidden');
           await ready(page, '.liquid-selection');
           const selected = await page.locator('.liquid-selection').evaluate(el => ({ width: el.getBoundingClientRect().width }));
@@ -58,12 +58,12 @@ async function ready(page, selector) {
     await page.getByRole('button', { name: '管理员菜单', exact: true }).click();
     await ready(page, '.account-menu');
     await page.getByRole('button', { name: '管理员菜单', exact: true }).click();
-    await page.waitForFunction(() => !document.querySelector('.account-menu').hasAttribute('data-glass-pane'));
+    await page.waitForFunction(() => document.querySelector('.account-menu').hidden && document.querySelector('.account-menu').dataset.glassState==='gpu');
     await page.locator('[data-theme-toggle]').click();
     await ready(page, '.theme-control');
     await page.locator('[data-theme-choice="light"]').click();
     await ready(page, '.sidebar');
-    await page.waitForFunction(() => !document.querySelector('.theme-control').hasAttribute('data-glass-pane'));
+    await page.waitForFunction(() => document.querySelector('[data-theme-toggle]').getAttribute('aria-expanded')==='false' && document.querySelector('.theme-control').dataset.glassState==='gpu');
     await page.evaluate(() => {
       const dialog = document.createElement('dialog');
       dialog.id = 'glass-test-dialog';

@@ -1,7 +1,7 @@
 /* Shared live-content lenses for navigation; isolated wallpaper lenses for authentication. */
 (function () {
   'use strict';
-  var vendor = new URL('liquidGL.vendor.js?v=3.0.0-c2000.7', document.currentScript.src).href;
+  var vendor = new URL('liquidGL.vendor.js?v=3.0.0-c2000.8', document.currentScript.src).href;
   if (document.documentElement.hasAttribute('data-content-frame')) return;
   if (!document.getElementById('liquid-scene')) return;
   var loginPage = document.body.classList.contains('login-page');
@@ -9,7 +9,7 @@
   var transparency = matchMedia('(prefers-reduced-transparency: reduce)');
   var forced = matchMedia('(forced-colors: active)');
   var active = new Map(), overlays = new Map(), serial = 0, pending = 0, refreshTimer = 0, geometryRaf = 0, loading = false, failed = false;
-  var selectors = '.login-card,.mobile-nav,.liquid-selection,.sidebar,.header-menu,.theme-toggle,.account,.account-menu,.theme-control,.modal,.ui-modal,dialog[open],.cbi-page-actions,.cbi-dropdown > ul.dropdown,.ui-dropdown-panel,.toast';
+  var selectors = '.login-card,.login-submit,.mobile-nav,.liquid-selection,.sidebar,.header-menu,.theme-toggle,.account,.account-menu,.theme-control,.modal,.ui-modal,dialog[open],.cbi-page-actions,.cbi-dropdown > ul.dropdown,.ui-dropdown-panel,.toast';
   var appearance = palette();
   function palette() { return document.documentElement.dataset.theme + ':' + document.documentElement.dataset.skin; }
   function permitted() {
@@ -41,11 +41,19 @@
   }
   function sync(panel, entry) {
     var rect = panel.getBoundingClientRect(), style = getComputedStyle(panel);
-    if (entry.lens) entry.lens.options.opacity = Number(style.opacity);
+    if (entry.lens) {
+      entry.lens.options.opacity = Number(style.opacity);
+      if (panel.closest('.mobile-nav')) entry.lens.options.interaction = panel.closest('.mobile-nav').matches('.is-nav-pressed,.is-dragging') ? 'fluid' : 'none';
+    }
+    if (entry.host) {
+      var origin = entry.host.getBoundingClientRect();
+      Object.assign(entry.pane.style, { left: rect.left-origin.left+'px', top: rect.top-origin.top+'px', width:rect.width+'px', height:rect.height+'px', borderRadius:style.borderRadius });
+      return;
+    }
     if (entry.local) return;
     Object.assign(entry.pane.style, {
       left: rect.left + 'px', top: rect.top + 'px', width: rect.width + 'px', height: rect.height + 'px',
-      borderRadius: style.borderRadius
+      borderRadius: style.borderRadius, visibility: style.display === 'none' ? 'hidden' : style.visibility
     });
   }
   function geometry() {
@@ -76,13 +84,14 @@
     var pane = document.createElement('div');
     pane.className = 'liquid-pane'; pane.id = 'liquid-pane-' + (++serial);
     pane.setAttribute('aria-hidden', 'true'); pane.setAttribute('data-liquid-ignore', '');
-    var entry = { pane: pane, lens: null, local: local, layer: layerFor(panel), disposed: false };
+    var host = loginPage && panel.matches('.login-submit') ? active.get(document.querySelector('.login-card'))?.pane : null;
+    var entry = { pane: pane, lens: null, host: host, local: local, layer: layerFor(panel), disposed: false };
     active.set(panel, entry);
     panel.setAttribute('data-glass-pane', pane.id); panel.setAttribute('data-glass-state', 'loading');
-    if (local) panel.prepend(pane); else getOverlay(entry.layer).append(pane);
+    if (host) host.append(pane); else if (local) panel.prepend(pane); else getOverlay(entry.layer).append(pane);
     sync(panel, entry);
     var compact = panel.matches('.header-menu,.theme-toggle,.account');
-    var control = compact || panel.matches('.mobile-nav');
+    var control = compact || panel.matches('.mobile-nav,.login-submit');
     var selection = panel.matches('.liquid-selection');
     var opticalScale = Math.min(1, innerHeight / Math.max(innerHeight, document.body.scrollHeight));
     var area = Math.max(1, document.body.scrollWidth * document.body.scrollHeight);
@@ -90,15 +99,16 @@
       entry.lens = window.liquidGL({
         target: '#' + pane.id, snapshot: loginPage ? '#liquid-scene' : 'body', content: false, zIndex: 0,
         bootstrap: !loginPage,
+        snapshotText: loginPage,
         resolution: loginPage ? Math.min(devicePixelRatio || 1, 1.25) : Math.max(.1, Math.min(1, Math.sqrt(2000000 / area))),
         // Shallow optics follow the upstream menu-bar lens; CSS supplies only a legibility wash.
-        refraction: selection ? .016 * opticalScale : control ? .012 : .008,
-        bevelDepth: selection ? .014 * opticalScale : control ? .024 : .018,
+        refraction: (selection ? .016 : control ? .012 : .008) * opticalScale,
+        bevelDepth: (selection ? .014 : control ? .024 : .018) * opticalScale,
         bevelWidth: selection ? .071 : control ? .10 : .075, aberration: selection ? .035 : .025,
         frost: 0, snapshotBlur: loginPage ? 2 : 3, magnify: selection ? 1.035 : 1,
         tint: null, shadow: false, specular: true, animateSpecular: false, reveal: 'none', tilt: false,
         opacity: Number(getComputedStyle(panel).opacity),
-        interaction: selection || control ? 'fluid' : 'none',
+        interaction: 'none',
         interactionStrength: selection ? .5 : compact ? .28 : .22,
         interactionRadius: selection ? 1.2 : .30, interactionViscosity: selection ? .25 : .65,
         on: { init: function () {
@@ -125,7 +135,7 @@
     pending = 0;
     // Never include form values, editable content or controls in authenticated-page snapshots.
     document.querySelectorAll('input,textarea,select,[contenteditable]:not([contenteditable="false"])').forEach(function (input) { input.setAttribute('data-liquid-ignore', ''); });
-    document.querySelectorAll('.sidebar-backdrop,.icon-definitions').forEach(function (element) { element.setAttribute('data-liquid-ignore', ''); });
+    document.querySelectorAll('.sidebar-backdrop,.icon-definitions,.brand,.topbar').forEach(function (element) { element.setAttribute('data-liquid-ignore', ''); });
     if (!loginPage) {
       var limit = Math.max(.1, Math.min(1, Math.sqrt(2000000 / Math.max(1, document.body.scrollWidth * document.body.scrollHeight))));
       active.forEach(function (entry) {
@@ -149,6 +159,9 @@
     });
     // Reserve permanent controls before admitting transient panels; opening a menu cannot evict an avatar.
     candidates = persistent.concat(floating.slice(0, Math.max(0, 8 - persistent.length)));
+    // Keep a small pool prepared while hidden; opening a drawer/popup needs only a paint.
+    var warm = panels.filter(function (panel) { return panel.matches('.sidebar,.theme-control,.account-menu') && !candidates.includes(panel); });
+    candidates = candidates.concat(warm.slice(0, Math.max(0, 8-candidates.length)));
     if (!permitted() || failed) { reset(); return; }
     active.forEach(function (entry, panel) { if (!candidates.includes(panel) || (!entry.local && entry.layer !== layerFor(panel))) remove(panel, entry); });
     if (!candidates.length) return;
@@ -165,7 +178,7 @@
     candidates.forEach(function (panel) { if (!active.has(panel) && !failed) attach(panel); });
     trackGeometry();
   }
-  function schedule() { if (!pending) pending = setTimeout(reconcile, 60); }
+  function schedule() { if (!pending) pending = setTimeout(reconcile, 0); }
   [reduced, transparency, forced].forEach(function (query) { query.addEventListener('change', function () { reset(); schedule(); }); });
   new MutationObserver(function () {
     var next = palette(); if (next !== appearance) { appearance = next; reset(); }

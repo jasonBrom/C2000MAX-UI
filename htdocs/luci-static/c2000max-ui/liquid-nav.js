@@ -32,6 +32,9 @@
     lens.style.width = pose.width + 'px';
     lens.style.height = (rects[0]?.height || 62) + 'px';
     lens.style.transform = 'translate3d(' + pose.x + 'px,' + (rects[0]?.y || 5) + 'px,0) scale(' + pose.scale + ')';
+    nav.style.setProperty('--lens-x', pose.x+'px'); nav.style.setProperty('--lens-y', (rects[0]?.y || 5)+'px');
+    nav.style.setProperty('--lens-width', pose.width+'px'); nav.style.setProperty('--lens-height', (rects[0]?.height || 62)+'px');
+    nav.style.setProperty('--lens-scale', pose.scale);
   }
   function frame(now) {
     raf = 0;
@@ -72,8 +75,8 @@
   }
   function restore(immediate) {
     var inert = nav.closest('[inert]');
-    var index = !inert && hover >= 0 ? hover : !inert && focus >= 0 ? focus : activeIndex();
-    preview(index, !inert && (hover >= 0 || focus >= 0) ? 1.04 : 1, immediate);
+    var index = !inert && focus >= 0 ? focus : activeIndex();
+    preview(index, !inert && focus >= 0 ? 1.025 : 1, immediate);
   }
   function refresh() {
     measure();
@@ -96,9 +99,9 @@
     restore(false);
   }
   nav.addEventListener('pointerover', function (event) {
-    if (event.pointerType !== 'mouse' || gesture || nav.closest('[inert]')) return;
-    var index = indexOf(event.target); if (index < 0 || index === hover) return;
-    hover = index; restore(false);
+    if (event.pointerType !== 'mouse') return;
+    nav.dataset.input = 'pointer'; focus = -1;
+    if (!gesture) restore(false);
   });
   nav.addEventListener('pointerleave', function () { hover = -1; if (!gesture) restore(false); });
   nav.addEventListener('pointerdown', function (event) {

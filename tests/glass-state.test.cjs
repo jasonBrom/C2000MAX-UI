@@ -17,7 +17,7 @@ const ready = (page, selector) => page.waitForFunction(s => document.querySelect
     await page.locator('.theme-toggle').click();
     await ready(page, '.theme-control');
     assert.deepEqual(await page.evaluate(selectors => selectors.map(s => document.querySelector(s).dataset.glassPane), controls), identities, 'a popup must not evict any persistent control lens');
-    assert.equal(await page.locator('.liquid-overlay canvas').count(), 1, 'popup and controls still share a base canvas');
+    assert.equal(await page.locator('.liquid-overlay canvas').count(), 2, 'popup shares the base canvas while the prepared drawer keeps its layer');
     await page.screenshot({ path: 'build/preview/glass-state-popup.png' });
     await page.keyboard.press('Escape');
     await page.getByRole('button', { name: '菜单', exact: true }).click();
@@ -40,8 +40,8 @@ const ready = (page, selector) => page.waitForFunction(s => document.querySelect
     assert.ok(await page.locator('.liquid-selection').evaluate(el => Math.abs(el.getBoundingClientRect().width - document.querySelector('.mobile-nav [aria-expanded="true"]').offsetWidth) < 1.5), 'selection geometry excludes the temporary press scale');
     await page.screenshot({ path: 'build/preview/glass-state-drawer.png' });
     await page.locator('#close-menu').click();
-    await page.waitForFunction(() => getComputedStyle(document.querySelector('.sidebar')).visibility === 'hidden' && !document.querySelector('[data-glass-layer="drawer"]'));
-    assert.equal(await page.locator('.liquid-overlay canvas').count(), 1);
+    await page.waitForFunction(() => getComputedStyle(document.querySelector('.sidebar')).visibility === 'hidden' && getComputedStyle(document.querySelector('[data-glass-layer="drawer"] canvas')).visibility === 'hidden');
+    assert.equal(await page.locator('.liquid-overlay canvas').count(), 2);
 
     const continuity = await page.evaluate(async () => {
       const button = document.querySelector('.theme-toggle');
