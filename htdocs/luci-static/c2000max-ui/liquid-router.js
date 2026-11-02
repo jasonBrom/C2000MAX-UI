@@ -22,6 +22,7 @@
     var frame = null, generation = 0, pending = null, dispose = null, stopped = false;
     var reduced = matchMedia('(prefers-reduced-motion: reduce)');
     var scrolls = new Map(), current = location.pathname + location.search + location.hash;
+    var formBaselines = new WeakMap(), editedForms = new WeakSet();
     var initialState = Object.assign({}, history.state, { c2000: true });
     history.replaceState(initialState, '', location.href);
     history.scrollRestoration = 'manual';
@@ -149,6 +150,7 @@
       }
       child.document.addEventListener('click', intercept);
       child.document.addEventListener('keydown', forwardKey);
+      var forgetForm = trackFormEdits(child.document);
       child.addEventListener('load', queue, true);
       child.addEventListener('scroll', queueScroll, { passive: true });
       var indicator = document.querySelector('[data-indicator="poll-status"]'), indicatorCopy;
@@ -178,6 +180,7 @@
         document.removeEventListener('c2000-skin-change', appearance);
         child.document.removeEventListener('click', intercept); child.document.removeEventListener('keydown', forwardKey);
         child.removeEventListener('load', queue, true);
+        forgetForm();
         child.removeEventListener('scroll', queueScroll);
         child.document.removeEventListener('poll-start', pollState); child.document.removeEventListener('poll-stop', pollState);
         child.document.removeEventListener('luci-loaded', pollState);
@@ -192,14 +195,43 @@
     function forwardKey(event) {
       if (event.key === 'Escape') window.C2000Menu?.close();
     }
+    function fields(map) {
+      return Array.from(map.querySelectorAll('input,textarea,select')).filter(function (input) {
+        return !input.disabled && !input.readOnly && !/^(button|submit|reset)$/.test(input.type);
+      });
+    }
+    function fieldValue(input) {
+      if (input.matches('select')) return Array.from(input.selectedOptions, function (option) { return option.value; }).join('\u0000');
+      return /^(checkbox|radio)$/.test(input.type) ? input.checked : input.value;
+    }
+    function trackFormEdits(doc) {
+      var recentMap, recentTime = 0;
+      function remember(map) {
+        if (!editedForms.has(map)) formBaselines.set(map, new Map(fields(map).map(function (input) { return [input, fieldValue(input)]; })));
+      }
+      function intent(event) {
+        var map = event.target.closest?.('.cbi-map'); if (!map) return;
+        remember(map);
+        if (event.isTrusted && event.type !== 'focusin') { recentMap = map; recentTime = Date.now(); }
+      }
+      function changed(event) {
+        var map = event.target.closest?.('.cbi-map'); if (!map) return;
+        if (!event.isTrusted && (map !== recentMap || Date.now() - recentTime > 700)) return;
+        if (formBaselines.has(map)) editedForms.add(map);
+      }
+      ['pointerdown','keydown','focusin'].forEach(function (name) { doc.addEventListener(name, intent, true); });
+      ['input','change','widget-change'].forEach(function (name) { doc.addEventListener(name, changed, true); });
+      return function () {
+        ['pointerdown','keydown','focusin'].forEach(function (name) { doc.removeEventListener(name, intent, true); });
+        ['input','change','widget-change'].forEach(function (name) { doc.removeEventListener(name, changed, true); });
+      };
+    }
     function dirty(doc) {
-      return !!doc.querySelector('[data-changed="true"],.cbi-input-invalid') ||
-        Array.from(doc.querySelectorAll('.cbi-map input,.cbi-map textarea,.cbi-map select')).some(function (input) {
-          if (input.type === 'password' || input.type === 'hidden' || input.disabled) return false;
-          if (input.matches('select')) return Array.from(input.options).some(function (option) { return option.selected !== option.defaultSelected; });
-          if (/^(checkbox|radio)$/.test(input.type)) return input.checked !== input.defaultChecked;
-          return input.value !== input.defaultValue;
-        });
+      return Array.from(doc.querySelectorAll('.cbi-map')).some(function (map) {
+        if (!editedForms.has(map)) return false;
+        var baseline = formBaselines.get(map), inputs = fields(map);
+        return baseline && (inputs.length !== baseline.size || inputs.some(function (input) { return fieldValue(input) !== baseline.get(input); }));
+      });
     }
     function intercept(event) {
       var link = event.target.closest?.('a[href]');
@@ -215,6 +247,7 @@
       event.preventDefault(); open(next);
     }
     document.addEventListener('click', intercept);
+    trackFormEdits(document);
     window.addEventListener('popstate', function () {
       if (dirty(frame?.contentDocument || document) && !window.confirm('当前页面有未保存的修改，确定离开吗？')) {
         history.pushState({ c2000: true }, '', current); return;

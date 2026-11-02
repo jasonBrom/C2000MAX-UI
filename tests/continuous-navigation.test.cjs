@@ -14,6 +14,8 @@ async function content(page,title) {
  try {
   const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   const page=await context.newPage(),errors=[]; page.on('pageerror',e=>errors.push(e.message));
+  let expectedDialog=false; const unwantedDialogs=[];
+  page.on('dialog',async dialog=>{if(!expectedDialog)unwantedDialogs.push(dialog.message());await dialog.dismiss();});
   let releaseImage;
   const held=new Promise(resolve=>{releaseImage=resolve;});
   await page.route('**/assets/c2000max-front.png',async route=>{await held;await route.continue();});
@@ -49,8 +51,9 @@ async function content(page,title) {
   await child.getByRole('button',{name:'关闭',exact:true}).click();
   await page.waitForFunction(()=>!document.querySelector('.mobile-nav').inert);
   await child.getByLabel('测试名称').fill('draft');
-  page.once('dialog',dialog=>dialog.dismiss());
+  expectedDialog=true;
   await page.locator('.mobile-nav-items a').first().click();
+  expectedDialog=false;
   assert.equal(await child.getByLabel('测试名称').inputValue(),'draft','cancelled navigation preserves local form edits');
   await child.getByLabel('测试名称').fill('default');
   await page.locator('.mobile-nav-items a').nth(3).click(); await content(page,'DHCP');
@@ -76,6 +79,10 @@ async function content(page,title) {
   await page.locator('.mobile-nav-items a').first().focus(); await page.keyboard.press('ArrowRight');
   assert.equal(await page.locator('.mobile-nav').getAttribute('data-input'),'keyboard');
   assert.equal(await page.locator('.mobile-nav-items a').nth(1).evaluate(e=>e.matches(':focus-visible')),true,'keyboard focus remains visible');
+  await page.goto(base+'/cgi-bin/luci/admin/modem/qmodem'); await ready(page);
+  await page.locator('.mobile-nav-items a').first().click();
+  await page.frameLocator('.c2000-view-frame').getByRole('heading',{name:'连接正常',exact:true}).waitFor();
+  assert.deepEqual(unwantedDialogs,[],'automatic native select initialization must never be mistaken for user edits');
   assert.deepEqual(errors,[]);
   await context.close();
   console.log('PASS: glass before blocked assets, persistent shell/canvas, touch without outline, native forms/modals, history, private bounded frame snapshots and viewport alignment');
