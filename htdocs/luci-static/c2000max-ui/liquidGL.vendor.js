@@ -8,6 +8,8 @@
  * C2000MAX patch: optional snapshotBlur caches a smooth blur before texture upload.
  * C2000MAX patch: animateSpecular:false keeps the highlight without continuous redraw.
  * C2000MAX patch: optional opacity follows the real foreground panel during transitions.
+ * C2000MAX patch: embed document SVG symbols when rasterising standalone icon images.
+ * C2000MAX patch: clear glass uses bilinear sampling without an extra five-tap blur.
  */
 
 (() => {
@@ -565,13 +567,30 @@
     function svgToImage(el) {
       const r = el.getBoundingClientRect();
       const computed = getComputedStyle(el);
-      const paintSig = `${computed.color}|${computed.fill}|${computed.stroke}`;
-      const signature = `${el.outerHTML.length}|${el.childElementCount}|${Math.round(r.width)}x${Math.round(r.height)}|${el.className}|${paintSig}`;
+      const paintSig = [el, ...el.querySelectorAll("use,g,path,circle,rect")].map((node) => {
+        const style = node === el ? computed : getComputedStyle(node);
+        return `${style.color}|${style.fill}|${style.stroke}|${style.opacity}|${style.display}|${style.visibility}|${style.transform}`;
+      }).join(";");
+      const signature = `${el.outerHTML}|${Math.round(r.width)}x${Math.round(r.height)}|${paintSig}`;
       const cached = svgCache.get(el);
       if (cached && cached.signature === signature) return cached.entry;
 
       const clone = el.cloneNode(true);
       inlineSvgStyles(el, clone);
+      // A data-URL SVG cannot resolve <use href="#id"> against the surrounding document.
+      const definitions = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+      const included = new Set(Array.from(clone.querySelectorAll("[id]"), (node) => node.id));
+      const uses = Array.from(clone.querySelectorAll("use"));
+      for (let i = 0; i < uses.length; i++) {
+        const href = uses[i].getAttribute("href") || uses[i].getAttribute("xlink:href");
+        if (!href?.startsWith("#") || included.has(href.slice(1))) continue;
+        const symbol = el.ownerDocument.getElementById(href.slice(1));
+        if (!symbol) continue;
+        included.add(href.slice(1));
+        const copy = symbol.cloneNode(true);
+        definitions.append(copy); uses.push(...copy.querySelectorAll("use"));
+      }
+      if (definitions.childElementCount) clone.prepend(definitions);
       let html = new XMLSerializer().serializeToString(clone);
       if (
         !/^<svg[^>]*\swidth=/.test(html) ||
@@ -3117,11 +3136,6 @@
               refrCol = sum / float(SAMPLES);
           } else {
               refrCol = sampleSource(sampleUV);
-              refrCol += sampleSource(sampleUV + vec2( texel.x, 0.0));
-              refrCol += sampleSource(sampleUV + vec2(-texel.x, 0.0));
-              refrCol += sampleSource(sampleUV + vec2(0.0,  texel.y));
-              refrCol += sampleSource(sampleUV + vec2(0.0, -texel.y));
-              refrCol /= 5.0;
 
               if (u_aberration > 0.0) {
                   refrCol.r = sampleSource(sampleUV - chroma).r;
@@ -3897,11 +3911,6 @@ fn fs(in: VSOut) -> @location(0) vec4<f32> {
     refrCol = sum / 16.0;
   } else {
     refrCol = sampleSource(sampleUV);
-    refrCol = refrCol + sampleSource(sampleUV + vec2<f32>(texel.x, 0.0));
-    refrCol = refrCol + sampleSource(sampleUV + vec2<f32>(-texel.x, 0.0));
-    refrCol = refrCol + sampleSource(sampleUV + vec2<f32>(0.0, texel.y));
-    refrCol = refrCol + sampleSource(sampleUV + vec2<f32>(0.0, -texel.y));
-    refrCol = refrCol / 5.0;
 
     if (u.aberration > 0.0) {
       let chromaR = sampleSource(sampleUV - chroma).r;

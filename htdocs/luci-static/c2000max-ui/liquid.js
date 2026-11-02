@@ -1,14 +1,14 @@
 /* Shared live-content lenses for navigation; isolated wallpaper lenses for authentication. */
 (function () {
   'use strict';
-  var vendor = new URL('liquidGL.vendor.js?v=3.0.0-c2000.3', document.currentScript.src).href;
+  var vendor = new URL('liquidGL.vendor.js?v=3.0.0-c2000.4', document.currentScript.src).href;
   if (!document.getElementById('liquid-scene')) return;
   var loginPage = document.body.classList.contains('login-page');
   var reduced = matchMedia('(prefers-reduced-motion: reduce)');
   var transparency = matchMedia('(prefers-reduced-transparency: reduce)');
   var forced = matchMedia('(forced-colors: active)');
   var active = new Map(), overlays = new Map(), serial = 0, pending = 0, refreshTimer = 0, geometryRaf = 0, loading = false, failed = false;
-  var selectors = '.login-card,.mobile-nav,.sidebar,.header-menu,.theme-toggle,.account,.account-menu,.theme-control,.modal,.ui-modal,dialog[open],.cbi-page-actions,.cbi-dropdown > ul.dropdown,.ui-dropdown-panel,.toast';
+  var selectors = '.login-card,.mobile-nav,.liquid-selection,.sidebar,.header-menu,.theme-toggle,.account,.account-menu,.theme-control,.modal,.ui-modal,dialog[open],.cbi-page-actions,.cbi-dropdown > ul.dropdown,.ui-dropdown-panel,.toast';
   var appearance = palette();
   var enhancementAfter = performance.now() + (loginPage ? 0 : 800);
   function palette() { return document.documentElement.dataset.theme + ':' + document.documentElement.dataset.skin; }
@@ -79,18 +79,23 @@
     sync(panel, entry);
     var compact = panel.matches('.header-menu,.theme-toggle,.account');
     var control = compact || panel.matches('.mobile-nav');
+    var selection = panel.matches('.liquid-selection');
+    var opticalScale = Math.min(1, innerHeight / Math.max(innerHeight, document.body.scrollHeight));
     var area = Math.max(1, document.body.scrollWidth * document.body.scrollHeight);
     try {
       entry.lens = window.liquidGL({
-        target: '#' + pane.id, snapshot: loginPage ? '#liquid-scene' : 'body', content: false, zIndex: 0,
+        target: '#' + pane.id, snapshot: loginPage ? '#liquid-scene' : 'body', content: selection ? '.mobile-nav-items' : false, zIndex: 0,
         resolution: loginPage ? Math.min(devicePixelRatio || 1, 1.25) : Math.max(.1, Math.min(1, Math.sqrt(2000000 / area))),
         // Shallow optics follow the upstream menu-bar lens; CSS supplies only a legibility wash.
-        refraction: control ? .012 : .008, bevelDepth: control ? .024 : .018,
-        bevelWidth: control ? .10 : .075, aberration: .025, frost: 0, snapshotBlur: loginPage ? 2 : 8,
+        refraction: selection ? .016 * opticalScale : control ? .012 : .008,
+        bevelDepth: selection ? .014 * opticalScale : control ? .024 : .018,
+        bevelWidth: selection ? .071 : control ? .10 : .075, aberration: selection ? .6 : .025,
+        frost: 0, snapshotBlur: loginPage ? 2 : 8, magnify: selection ? 1.05 : 1,
         tint: null, shadow: false, specular: true, animateSpecular: false, reveal: 'none', tilt: false,
         opacity: Number(getComputedStyle(panel).opacity),
-        interaction: control ? 'fluid' : 'none',
-        interactionStrength: compact ? .28 : .22, interactionRadius: .30, interactionViscosity: .65,
+        interaction: selection || control ? 'fluid' : 'none',
+        interactionStrength: selection ? .5 : compact ? .28 : .22,
+        interactionRadius: selection ? 1.2 : .30, interactionViscosity: selection ? .25 : .65,
         on: { init: function () {
           clearTimeout(entry.timer);
           if (!entry.disposed) panel.setAttribute('data-glass-state', 'gpu');
@@ -122,11 +127,11 @@
     }
     var panels = Array.from(document.querySelectorAll(selectors));
     panels.forEach(function (panel) {
-      panel.setAttribute('data-glass', panel.matches('.login-card') ? 'clear' : 'regular');
+      panel.setAttribute('data-glass', panel.matches('.login-card,.liquid-selection') ? 'clear' : 'regular');
       panel.setAttribute('data-liquid-ignore', '');
     });
     var candidates = panels.filter(visible);
-    var persistent = candidates.filter(function (panel) { return panel.matches('.login-card,.mobile-nav,.sidebar,.header-menu,.theme-toggle,.account,.cbi-page-actions'); });
+    var persistent = candidates.filter(function (panel) { return panel.matches('.login-card,.mobile-nav,.liquid-selection,.sidebar,.header-menu,.theme-toggle,.account,.cbi-page-actions'); });
     var floating = candidates.filter(function (panel) { return !persistent.includes(panel); });
     floating.sort(function (a, b) {
       function priority(panel) {

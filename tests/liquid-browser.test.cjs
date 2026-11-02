@@ -36,8 +36,8 @@ async function ready(page, selector) {
           await page.locator('#close-menu').click();
           await page.waitForFunction(() => !document.querySelector('.sidebar').hasAttribute('data-glass-pane'));
           await page.waitForFunction(() => getComputedStyle(document.querySelector('.sidebar')).visibility === 'hidden');
-          const selected = await page.locator('.liquid-selection').evaluate(el => ({ bg: getComputedStyle(el).backgroundColor, width: el.getBoundingClientRect().width }));
-          assert.notEqual(selected.bg, 'rgba(0, 0, 0, 0)');
+          await ready(page, '.liquid-selection');
+          const selected = await page.locator('.liquid-selection').evaluate(el => ({ width: el.getBoundingClientRect().width }));
           assert.ok(selected.width >= 44);
         }
         await page.screenshot({ path: `build/preview/liquid-home-${theme}-${width}.png` });

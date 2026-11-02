@@ -1,5 +1,6 @@
 const http=require('node:http'),fs=require('node:fs/promises'),path=require('node:path');
 const root=path.join(__dirname,'..'),preview=path.join(root,'build/preview');
+const navigationPreview=require('./navigation-preview.cjs');
 const types={'.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.html':'text/html; charset=utf-8'};
 let bing=null;
 async function wallpaper(){
@@ -21,6 +22,7 @@ http.createServer(async(req,res)=>{
   let relative=decodeURIComponent(url.pathname),file;
   if(relative==='/'){res.writeHead(302,{Location:'/cgi-bin/luci/admin/status/c2000max'}).end();return;}
   if(relative==='/cgi-bin/luci/admin/status/c2000max')file=path.join(preview,'dashboard.html');
+  else if(relative==='/navigation')file=path.join(preview,'dashboard.html');
   else if(relative==='/login'||relative==='/cgi-bin/luci/admin/logout')file=path.join(preview,'login.html');
   else if(relative==='/login-error')file=path.join(preview,'login-error.html');
   else if(relative==='/preview-runtime.js')file=path.join(root,'tests/preview-runtime.js');
@@ -36,6 +38,7 @@ http.createServer(async(req,res)=>{
   file=path.resolve(file);
   if(!file.startsWith(path.resolve(root)+path.sep)){res.writeHead(403).end();return;}
   let data=await fs.readFile(file);
+  if(relative==='/navigation')data=Buffer.from(navigationPreview(data.toString()));
   if(file.endsWith('login.html')||file.endsWith('login-error.html')){
    let html=data.toString();
    if(bing)html=html.replace(/(<img class="login-wallpaper" src=")[^"]+/, '$1/bing.jpg')

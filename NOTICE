@@ -11,7 +11,8 @@ Source: https://github.com/naughtyduk/liquidGL/tree/88f681ab7035fd55b04f63edff18
 See htdocs/luci-static/c2000max-ui/liquidGL.LICENSE.txt. No upstream demo assets are included.
 Local modifications: optional snapshotBlur caching, input/editable-content exclusion in snapshot capture,
 animateSpecular:false to retain highlights without continuous idle redraw,
-and per-lens opacity to follow foreground panel transitions.
+per-lens opacity to follow foreground panel transitions, embedded document SVG symbols and
+paint-state-aware SVG caching, and bilinear clear-glass sampling without the extra five-tap blur.
 
 Visual assets:
 - c2000max-front.png: existing C2000MAX prototype asset derived from user-supplied references.

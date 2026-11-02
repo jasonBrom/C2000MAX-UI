@@ -13,10 +13,25 @@ html[data-motion-ready] .c2000-ui :is(.icon-button,.account,.nav-home,.menu-cate
 .c2000-ui .account-chevron { transform: rotate(90deg); }
 .c2000-ui .account[aria-expanded="true"] .account-chevron { transform: rotate(-90deg); }
 .c2000-ui [data-motion-exit], .login-page [data-motion-exit] { display: var(--motion-display,block) !important; pointer-events: none !important; }
-.liquid-selection { position: absolute !important; left: 0; top: 0; z-index: 2; pointer-events: none; border-radius: 999px; background: var(--glass-selected); box-shadow: none; }
-.liquid-selection[data-selection-ready] { transition: transform var(--motion-drawer) var(--motion-spring), width var(--motion-drawer) var(--motion-spring), height var(--motion-enter) var(--motion-spring); }
+.liquid-selection {
+  position: absolute !important; left: 0; top: 0; z-index: 2; pointer-events: none; border-radius: 999px;
+  --glass-wash: transparent; background: rgba(255,255,255,.25); box-shadow: 0 2px 8px rgba(20,30,45,.08);
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); transform-origin: center;
+}
+[data-theme="dark"] .liquid-selection { background: rgba(255,255,255,.10); }
 .c2000-ui .mobile-nav.has-glass-selection :is(a,button).active { background: transparent; box-shadow: none; }
-.c2000-ui .mobile-nav > :is(a,button) { z-index: 3; }
+.c2000-ui .mobile-nav-items { position: relative; z-index: 3; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); }
+.c2000-ui .mobile-nav { user-select: none; -webkit-user-select: none; touch-action: pan-y; }
+.c2000-ui .mobile-nav-items > :is(a,button) { position: relative; cursor: pointer; }
+.c2000-ui .mobile-nav .is-lens-target { cursor: grab; }
+.c2000-ui .mobile-nav.is-dragging, .c2000-ui .mobile-nav.is-dragging * { cursor: grabbing; }
+.c2000-ui .mobile-nav .icon { transition: color 160ms ease; }
+.c2000-ui .mobile-nav.has-lens-preview .active:not(.is-lens-target) { color: var(--glass-ink); font-weight: 500; }
+.c2000-ui .mobile-nav .is-lens-target { color: var(--accent); font-weight: 650; }
+.mobile-nav.has-lens-preview :is(.active,[aria-current="page"]):not(.is-lens-target) > .icon .symbol-outline { opacity: 1; }
+.mobile-nav.has-lens-preview :is(.active,[aria-current="page"]):not(.is-lens-target) > .icon .symbol-selected { opacity: 0; }
+.mobile-nav .is-lens-target > .icon .symbol-outline { opacity: 0; }
+.mobile-nav .is-lens-target > .icon .symbol-selected { opacity: 1; }
 @media (max-width: 1100px) {
   .c2000-ui .sidebar { transition: transform var(--motion-drawer) var(--motion-spring), visibility 0s var(--motion-drawer); }
   .c2000-ui.menu-open .sidebar { transition-delay: 0s; }

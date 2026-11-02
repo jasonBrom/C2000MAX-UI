@@ -185,7 +185,7 @@ npm run test:browser
 npm run preview
 ```
 
-浏览器检查自动启动并关闭预览服务。若希望使用本机 Edge，可设置 `PLAYWRIGHT_CHANNEL=msedge`。预览地址为 `http://127.0.0.1:4179/`，登录预览 `/login`。预览使用合成数据，不连接真实设备。
+浏览器检查自动启动并关闭预览服务。若希望使用本机 Edge，可设置 `PLAYWRIGHT_CHANNEL=msedge`。预览地址为 `http://127.0.0.1:4179/`，登录预览 `/login`，玻璃导航交互演示 `/navigation`。演示页可连续悬停、拖动和选择项目；实际控制台仍保留原生 LuCI 页面跳转。预览使用合成数据，不连接真实设备。
 
 每次发布同时更新 `Makefile` 的包版本与模板/首页加载器中的缓存版本。参见 [验证说明](docs/VALIDATION.md)、[设计规范](docs/DESIGN-SYSTEM.md)及 [组件映射](docs/THEME-COMPONENTS.md)。
 

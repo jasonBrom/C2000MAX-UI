@@ -106,23 +106,8 @@
       selected.setAttribute('href', '#' + name + '-selected'); selected.classList.add('symbol-selected'); icon.append(selected);
     });
   }
-  function selection() {
-    var nav = document.querySelector('.mobile-nav');
-    if (!nav || !nav.getClientRects().length) return;
-    var selected = nav.querySelector('[aria-expanded="true"]') || nav.querySelector('[aria-current="page"]');
-    if (!selected) return;
-    var indicator = nav.querySelector('.liquid-selection');
-    if (!indicator) {
-      indicator = document.createElement('span'); indicator.className = 'liquid-selection';
-      indicator.setAttribute('aria-hidden', 'true'); nav.prepend(indicator);
-    }
-    // Layout coordinates exclude the transient press scale, so the selection cannot freeze mid-press.
-    Object.assign(indicator.style, { width: selected.offsetWidth + 'px', height: selected.offsetHeight + 'px', transform: 'translate3d(' + selected.offsetLeft + 'px,' + selected.offsetTop + 'px,0)' });
-    if (!nav.classList.contains('has-glass-selection')) nav.classList.add('has-glass-selection');
-    if (!indicator.hasAttribute('data-selection-ready')) requestAnimationFrame(function () { indicator.setAttribute('data-selection-ready', ''); });
-  }
   function observe() {
-    pending = 0; decorate(); selection();
+    pending = 0; decorate();
     document.querySelectorAll('.theme-control,.account-menu,.modal,.ui-modal,dialog[open]').forEach(function (panel) {
       var now = !panel.closest('[hidden]') && getComputedStyle(panel).display !== 'none';
       var previous = visibility.get(panel);
@@ -139,7 +124,7 @@
   document.addEventListener('keydown', arm, { once: true, capture: true });
   document.addEventListener('pointerdown', function (event) {
     var target = control(event);
-    if (!target || target.disabled || target.closest('[inert]') || event.button !== 0 || event.isPrimary === false) return;
+    if (!target || target.disabled || target.closest('[inert],.mobile-nav') || event.button !== 0 || event.isPrimary === false) return;
     if (pressed) springTo(pressed.element, 1);
     pressed = { element: target, pointerId: event.pointerId };
     springTo(target, .94);
@@ -153,7 +138,7 @@
   document.addEventListener('pointercancel', release, { passive: true });
   document.addEventListener('click', function (event) {
     var target = control(event), icon = target?.querySelector('svg.icon');
-    if (!icon || target.disabled || target.closest('[inert]')) return;
+    if (!icon || target.disabled || target.closest('[inert],.mobile-nav')) return;
     springTo(icon, 1, -1.1);
   });
   new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'open', 'aria-expanded', 'aria-current'] });

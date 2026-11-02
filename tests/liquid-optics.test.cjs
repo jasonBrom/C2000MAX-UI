@@ -15,7 +15,7 @@ const base = 'http://127.0.0.1:4179/cgi-bin/luci/admin/status/c2000max';
       await page.waitForFunction(() => document.querySelector('.mobile-nav')?.dataset.glassState === 'gpu');
       const nav = await page.locator('.mobile-nav').boundingBox();
       assert.ok(nav.width <= 440 && Math.abs(nav.x + nav.width / 2 - 316) < 1, 'wide-phone navigation remains compact and centred');
-      assert.ok(await page.locator('.mobile-nav > a,.mobile-nav > button').evaluateAll(items => items.every(el => el.getBoundingClientRect().height >= 44)), 'touch targets remain at least 44px');
+      assert.ok(await page.locator('.mobile-nav-items > a,.mobile-nav-items > button').evaluateAll(items => items.length === 5 && items.every(el => el.getBoundingClientRect().height >= 44)), 'five touch targets remain at least 44px');
 
       // A test-only swatch covers the content behind the real production navigation.
       await page.evaluate(async () => {
