@@ -258,6 +258,7 @@ body.c2000-ui { isolation: isolate; background: var(--page); }
 .c2000-ui .cbi-tabmenu > li:not(:has(>a)) { display: flex; align-items: center; min-height: var(--control-height); padding: 8px 14px; line-height: 20px; border-radius: 10px; cursor: pointer; white-space: nowrap; color: var(--text-secondary); }
 .c2000-ui :is(.tabs > li.active,.cbi-tabmenu > li.cbi-tab) > a,
 .c2000-ui .cbi-tabmenu > li.cbi-tab:not(:has(>a)) { background: var(--accent); color: var(--on-accent); font-weight: 650; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.c2000-ui .cbi-tabmenu > li.cbi-tab:not(:has(>a)) { background: var(--accent) !important; }
 .c2000-ui :is(.tabs,.cbi-tabmenu) a:is(:hover,:focus) { text-decoration: none; }
 
 .login-page .login-card { --glass-wash: rgba(248,250,255,.32); }

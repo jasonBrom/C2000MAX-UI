@@ -5,11 +5,11 @@
 </main>
 {% include('themes/c2000max-ui/mobile') %}
 <script>window.C2000StartNavigation?.();</script>
-<script src="{{ media }}/menu.js?v=liquidGL-14"></script>
-<script src="{{ media }}/shell.js?v=liquidGL-14"></script>
-<script src="{{ media }}/liquid-motion.js?v=liquidGL-14"></script>
-<script src="{{ media }}/liquid-nav.js?v=liquidGL-14"></script>
-<script src="{{ media }}/liquid.js?v=liquidGL-14" defer></script>
+<script src="{{ media }}/menu.js?v=liquidGL-15"></script>
+<script src="{{ media }}/shell.js?v=liquidGL-15"></script>
+<script src="{{ media }}/liquid-motion.js?v=liquidGL-15"></script>
+<script src="{{ media }}/liquid-nav.js?v=liquidGL-15"></script>
+<script src="{{ media }}/liquid.js?v=liquidGL-15" defer></script>
 {% endif %}
 </body>
 </html>

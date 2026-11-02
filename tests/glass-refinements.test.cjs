@@ -17,6 +17,7 @@ const ready=(page,selector)=>page.waitForFunction(s=>document.querySelector(s)?.
   assert.equal(await native.locator('#update_time_display').evaluate(e=>getComputedStyle(e).textAlign),'center');
   const tab=native.getByRole('tab',{name:'网络优先级'});
   await tab.click();assert.equal(await tab.getAttribute('aria-selected'),'true');
+  assert.notEqual(await tab.evaluate(e=>getComputedStyle(e).backgroundColor),'rgba(0, 0, 0, 0)','plain-text selected tabs must beat the Bootstrap adapter transparent background');
   assert.ok((await tab.boundingBox()).height>=32,'text-only plugin tabs retain the desktop control height');
   await tab.press('ArrowLeft');assert.equal(await native.getByRole('tab',{name:'拨号模式'}).getAttribute('aria-selected'),'true');
   await page.locator('.brand').click();
