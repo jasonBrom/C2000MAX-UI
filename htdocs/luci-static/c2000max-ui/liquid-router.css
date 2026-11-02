@@ -1,21 +1,25 @@
-/* One persistent shell; native pages scroll within their isolated content viewport. */
+/* Native LuCI runtimes are isolated; the outer document owns page scrolling. */
 .navigation-status { margin: 0 0 12px; font-size: 13px; color: var(--text-secondary); }
 .navigation-status[hidden] { display: none; }
 .c2000-view-frame { display: block; width: 100%; border: 0; background: transparent; }
 .c2000-view-frame[data-route-pending] { position: absolute; visibility: hidden; pointer-events: none; }
-body.c2000-ui.has-content-frame { padding-bottom: 0; overflow: hidden; }
-.has-content-frame .main { display: flex; flex-direction: column; height: 100dvh; min-height: 0; }
-.has-content-frame .topbar, .has-content-frame .main-footer, .has-content-frame .navigation-status { flex: 0 0 auto; }
-.c2000-ui.has-content-frame .topbar { width: 100%; margin-inline: 0; }
-.has-content-frame #maincontent { flex: 1 1 0; min-height: 0; width: 100%; margin-inline: auto; overflow: hidden; }
-.has-content-frame #maincontent > .c2000-view-frame { height: 100% !important; }
 .has-content-frame .main-footer { display: none; }
-[data-content-frame] body.c2000-ui { padding: 0; background: transparent; }
+body.content-modal-open { overflow: hidden; }
+html[data-content-frame], html[data-content-frame] body.c2000-ui {
+  height: auto; min-height: 0; padding: 0; margin: 0; background: transparent !important;
+}
+html[data-content-frame] { overflow: hidden; }
 [data-content-frame] body > :is(.brand,.header-menu,.sidebar,.sidebar-backdrop,.mobile-nav,.skip-link),
 [data-content-frame] :is(.topbar,.landscape,.liquid-scene) { display: none !important; }
-[data-content-frame] .main { margin: 0; padding: 0 0 12px; min-height: 0; background: transparent; }
+[data-content-frame] body.c2000-ui .main { margin: 0; padding: 0; min-height: 0; height: auto; background: transparent; }
 [data-content-frame] .luci-content { margin: 0; }
-@media(max-width:700px) {
-  [data-content-frame] body.c2000-ui { padding-bottom: calc(94px + env(safe-area-inset-bottom)); }
-  [data-content-frame] .cbi-page-actions { bottom: calc(88px + env(safe-area-inset-bottom)); }
+[data-content-frame] .main-footer { margin-bottom: 0; }
+[data-content-frame] #modal_overlay {
+  position: absolute; inset: var(--frame-visible-top, 0px) 0 auto;
+  height: var(--frame-visible-height, 100dvh); box-sizing: border-box;
+}
+[data-content-frame] #modal_overlay > .modal { max-height: calc(var(--frame-visible-height, 100dvh) - 32px); }
+[data-content-frame] dialog[open] {
+  position: absolute; inset: calc(var(--frame-visible-top, 0px) + 16px) 0 auto;
+  margin: 0 auto; max-height: calc(var(--frame-visible-height, 100dvh) - 32px);
 }

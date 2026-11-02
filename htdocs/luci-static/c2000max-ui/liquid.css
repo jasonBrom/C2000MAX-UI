@@ -59,7 +59,9 @@ body.c2000-ui { isolation: isolate; background: var(--page); }
 /* The canvas supplies the lensing. This wash never adds a second bevel or dark outline. */
 [data-glass] { isolation: isolate; contain: paint; color: var(--glass-ink); }
 [data-glass] > :not(.liquid-pane):not(canvas) { position: relative; z-index: 2; }
-[data-glass] > .liquid-pane { position: fixed; inset: 0; z-index: 0; border-radius: inherit; pointer-events: none; }
+[data-glass] > .liquid-pane { position: fixed; inset: 0; z-index: 0; border-radius: inherit; pointer-events: none; overflow: clip; }
+.mobile-nav[data-glass] > .liquid-pane, .mobile-nav .liquid-selection > .liquid-pane { position: absolute; }
+.mobile-nav > canvas { position: absolute; inset: 0; z-index: 0 !important; border-radius: inherit; }
 [data-glass]::after {
   content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: inherit;
   border: .5px solid var(--glass-edge);
@@ -80,6 +82,9 @@ body.c2000-ui { isolation: isolate; background: var(--page); }
 .c2000-ui .account[data-glass] .avatar { background: none; box-shadow: none; }
 .c2000-ui :is(.header-menu,.theme-toggle,.account) .icon, .login-page .theme-toggle .icon { --icon-color: currentColor; }
 .c2000-ui .account { padding-inline: 8px; }
+.c2000-ui #account-button { display: flex; border-radius: 999px; padding-inline: 12px; flex: 0 0 auto; white-space: nowrap; }
+.c2000-ui #account-button > .avatar { flex: 0 0 32px; }
+.c2000-ui .brand { top: 36px; }
 .c2000-ui :is(.icon-button,.avatar), .login-page .icon-button { border-radius: 50%; }
 .c2000-ui .sidebar {
   --glass-wash: color-mix(in srgb, var(--sidebar) 68%, transparent);
@@ -127,6 +132,14 @@ body.c2000-ui { isolation: isolate; background: var(--page); }
 .c2000-ui :is(input[type="checkbox"],input[type="radio"],input[type="range"]) { accent-color: var(--accent); }
 .c2000-ui :is(.cbi-tooltip,.ui-alert,.alert-message) { border-radius: 14px; }
 .c2000-ui .cbi-page-actions { --glass-wash: color-mix(in srgb, var(--surface-raised) 62%, transparent); border-radius: 22px; padding: 12px; gap: 8px; }
+/* Save controls belong to normal flow, so the last form rows remain readable. */
+.c2000-ui .cbi-page-actions { position: relative; bottom: auto; clear: both; }
+.c2000-ui #modal_overlay > .modal {
+  box-sizing: border-box; width: min(720px, 100%); min-width: 0 !important;
+  max-width: 100%; max-height: calc(100dvh - 32px); overflow: auto;
+  scrollbar-gutter: auto; overflow-wrap: anywhere; clip-path: none;
+}
+.c2000-ui .modal > .liquid-pane { overflow: hidden; }
 .c2000-ui .table .th, .c2000-ui table th { background: var(--surface-soft); }
 .c2000-ui :is(.ui-progress,.cbi-progressbar,.status-ring-track) { border-color: transparent; }
 
@@ -180,9 +193,12 @@ body.c2000-ui { isolation: isolate; background: var(--page); }
     min-width: 0; min-height: 62px; padding: 5px 2px; border-radius: 999px;
     font-size: 11px; line-height: 1.2; gap: 4px; color: var(--glass-ink);
   }
+  .c2000-ui .mobile-nav :is(a,button):is(:link,:visited,:hover,:focus,:active) { text-decoration: none; }
+  .c2000-ui .brand { top: 30px; }
+  .c2000-ui #account-button { padding-inline: 0; }
   .c2000-ui .mobile-nav .icon { --icon-color: currentColor; width: 23px; height: 23px; }
   .c2000-ui .mobile-nav :is(a,button).active { color: var(--accent); background: var(--glass-selected); box-shadow: none; font-weight: 650; }
-  .c2000-ui .cbi-page-actions { bottom: calc(90px + env(safe-area-inset-bottom)); }
+  .c2000-ui .cbi-page-actions { bottom: auto; }
   .login-page .login-card { border-radius: 28px; }
 }
 @media (prefers-contrast: more) {
@@ -200,4 +216,10 @@ body.c2000-ui { isolation: isolate; background: var(--page); }
 }
 @media (prefers-reduced-motion: reduce) {
   .c2000-ui :is(.cbi-button,.btn,.ui-button):active, .login-submit:active { transform: none; }
+}
+/* Counts remain available on narrow screens without colliding with the brand. */
+.c2000-ui #indicators > [data-indicator="uci-changes"] { white-space: nowrap; }
+@media(max-width:700px) {
+  .c2000-ui .topbar:has([data-indicator="uci-changes"]) { padding-top: 16px; padding-bottom: 36px; min-height: 114px; align-items: flex-start; box-sizing: border-box; }
+  .c2000-ui #indicators > [data-indicator="uci-changes"] { position: absolute; top: 78px; right: 0; padding: 5px 10px; font-size: 12px; }
 }

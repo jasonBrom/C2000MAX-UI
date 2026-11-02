@@ -77,7 +77,8 @@
     function render(node, path, depth) {
       const title = translate(node.title);
       const children = childrenOf(node);
-      if (!children.length) { const link=makeLink(node,path,title); if(depth===0){link.prepend(svg(node.name==='logout'?'logout':icons[node.name]||'layers'));link.classList.add('menu-root-link');}return link; }
+      // Deeper plugin sections open their native page tabs, rather than nesting drawers.
+      if (!children.length || depth > 0) { const link=makeLink(node,path,title); if(depth===0){link.prepend(svg(node.name==='logout'?'logout':icons[node.name]||'layers'));link.classList.add('menu-root-link');}return link; }
       const group = document.createElement('details'); group.className = 'menu-group';
       group.dataset.menuItem = 'true'; group.dataset.title = title; group.dataset.path = path.join('/');
       const summary = document.createElement('summary'); summary.className = 'menu-category';
@@ -88,7 +89,7 @@
       if (node.action && !['firstchild','alias'].includes(node.action.type)) list.append(makeLink(node, path, title + '概览'));
       children.forEach(child => list.append(render(child, [...path, child.name], depth + 1)));
       group.append(summary,list);
-      group.open = previous.has(group.dataset.path) || !!list.querySelector('[aria-current="page"]') || (options.demo && firstRender && node.name === 'status');
+      group.open = previous.has(group.dataset.path);
       return group;
     }
     childrenOf(root).forEach(child => fragment.append(render(child, ['admin',child.name], 0)));
@@ -100,7 +101,6 @@
       const active = matches[0]?.link;
       if (active) {
         active.setAttribute('aria-current','page'); active.classList.add('active');
-        for (let parent = active.parentElement; parent && parent !== nav; parent = parent.parentElement) if (parent.tagName === 'DETAILS') parent.open = true;
       }
     }
     nav.dataset.demo = String(!!options.demo);

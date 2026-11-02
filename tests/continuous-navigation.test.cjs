@@ -23,7 +23,7 @@ async function content(page,title) {
   await ready(page);
   assert.equal(await page.locator('.device-art').evaluate(el=>el.complete),false,'glass must be ready while the large device image is still blocked');
   releaseImage();
-  await page.evaluate(()=>{window.shellToken='kept';window.keptCanvas=document.querySelector('.liquid-overlay canvas');});
+  await page.evaluate(()=>{window.shellToken='kept';window.keptCanvas=document.querySelector('.mobile-nav > canvas');});
   const from=await item(page,0),wifi=await item(page,2);
   const session=await context.newCDPSession(page);
   async function touch(type,x,y){await session.send('Input.dispatchTouchEvent',{type,touchPoints:/End|Cancel/.test(type)?[]:[{x,y}]});}
@@ -33,7 +33,7 @@ async function content(page,title) {
   assert.ok((await page.locator('.mobile-nav-items > :is(a,button)').evaluateAll(items=>items.map(e=>getComputedStyle(e).outlineStyle))).every(style=>style==='none'));
   await touch('touchEnd'); await content(page,'无线');
   assert.equal(await page.evaluate(()=>window.shellToken),'kept');
-  assert.equal(await page.evaluate(()=>window.keptCanvas===document.querySelector('.liquid-overlay canvas')),true,'navigation must preserve the actual GPU canvas');
+  assert.equal(await page.evaluate(()=>window.keptCanvas===document.querySelector('.mobile-nav > canvas')),true,'navigation must preserve the actual GPU canvas');
   assert.equal(await page.locator('.mobile-nav [aria-current]').textContent(),'无线');
   await page.evaluate(()=>document.getElementById('view').append(document.createElement('p')));
   await page.waitForFunction(()=>document.getElementById('view').childNodes.length===0);
@@ -47,7 +47,7 @@ async function content(page,title) {
   await child.getByRole('button',{name:'打开测试弹窗'}).click();
   assert.equal(await page.locator('.mobile-nav').evaluate(e=>e.inert),true,'native content modals also disable the persistent navigation');
   const dialog=await child.locator('dialog').boundingBox(),frameBox=await page.locator('.c2000-view-frame').boundingBox();
-  assert.ok(dialog.y>=frameBox.y&&dialog.y+dialog.height<=frameBox.y+frameBox.height,'native modal stays inside the visible content viewport');
+  assert.ok(dialog.y>=0&&dialog.y+dialog.height<=844,'native modal stays inside the visible page viewport');
   await child.getByRole('button',{name:'关闭',exact:true}).click();
   await page.waitForFunction(()=>!document.querySelector('.mobile-nav').inert);
   await child.getByLabel('测试名称').fill('draft');
@@ -59,7 +59,7 @@ async function content(page,title) {
   await page.locator('.mobile-nav-items a').nth(3).click(); await content(page,'DHCP');
   await page.goBack(); await content(page,'无线');
   await page.goForward(); await content(page,'DHCP');
-  assert.equal(await page.evaluate(()=>window.keptCanvas===document.querySelector('.liquid-overlay canvas')),true,'history must preserve the shell');
+  assert.equal(await page.evaluate(()=>window.keptCanvas===document.querySelector('.mobile-nav > canvas')),true,'history must preserve the shell');
   await page.getByRole('button',{name:'菜单',exact:true}).click();
   await page.frameLocator('.c2000-view-frame').locator('body').evaluate(e=>e.classList.add('test-poll-update'));
   await page.locator('#close-menu').click();
@@ -73,9 +73,9 @@ async function content(page,title) {
    }));
    assert.ok(mismatch.every(value=>value<2),'glass proxies stay aligned during viewport changes');
   }
-  await page.addStyleTag({content:'.liquid-overlay[data-glass-layer="base"]{top:19px;left:7px}'});
+  await page.addStyleTag({content:'.mobile-nav{bottom:19px;left:7px}'});
   await page.evaluate(()=>visualViewport.dispatchEvent(new Event('resize'))); await page.waitForTimeout(250);
-  assert.equal(await page.locator('.liquid-overlay canvas').first().evaluate(e=>e.style.top),'0px','renderer must not reposition its canvas to viewport zero');
+  assert.equal(await page.locator('.mobile-nav > canvas').first().evaluate(e=>e.style.top),'0px','renderer must not reposition its canvas to viewport zero');
   await page.locator('.mobile-nav-items a').first().focus(); await page.keyboard.press('ArrowRight');
   assert.equal(await page.locator('.mobile-nav').getAttribute('data-input'),'keyboard');
   assert.equal(await page.locator('.mobile-nav-items a').nth(1).evaluate(e=>e.matches(':focus-visible')),true,'keyboard focus remains visible');

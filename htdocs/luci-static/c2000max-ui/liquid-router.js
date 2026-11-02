@@ -15,7 +15,7 @@
   var vendor = document.createElement('script');
   document.documentElement.dataset.navigationInstance = Date.now().toString(36) + Math.random().toString(36).slice(2,8);
   try { document.documentElement.dataset.navigationPrevious = sessionStorage.getItem('c2000-navigation-step') || ''; } catch (_) {}
-  vendor.src = new URL('liquidGL.vendor.js?v=3.0.0-c2000.6', document.currentScript.src).href;
+  vendor.src = new URL('liquidGL.vendor.js?v=3.0.0-c2000.7', document.currentScript.src).href;
   vendor.async = true; vendor.dataset.liquidVendor = '';
   document.head.append(vendor);
   var initialized = false;
@@ -88,7 +88,7 @@
       var next = route(url); if (!next) { nativePage(url, 'route'); return; }
       var key = next.pathname + next.search + next.hash;
       if (key === current && !options.pop) return;
-      scrolls.set(current, frame?.contentWindow.scrollY || scrollY);
+      scrolls.set(current, scrollY);
       current = key;
       if (!options.pop) history.pushState({ c2000: true }, '', key);
       step('loading');
@@ -137,7 +137,15 @@
       document.title = child.document.title;
       document.body.classList.add('has-content-frame');
       step('connected');
-      var observer, raf = 0, refresh = 0;
+      var observer, indicatorObserver, raf = 0, refresh = 0;
+      function viewport() {
+        var bounds = nextFrame.getBoundingClientRect(), vv = window.visualViewport;
+        var top = Math.max(0, (vv?.offsetTop || 0) - bounds.top);
+        var height = vv?.height || innerHeight;
+        var style = child.document.documentElement.style;
+        style.setProperty('--frame-visible-top', top + 'px');
+        style.setProperty('--frame-visible-height', height + 'px');
+      }
       function modalState() {
         var modal = child.document.body.classList.contains('modal-overlay-active') || !!child.document.querySelector('dialog[open]');
         document.body.classList.toggle('content-modal-open', modal);
@@ -151,6 +159,11 @@
       function resize() {
         raf = 0;
         if (!frame?.isConnected || child.closed) return;
+        // The outer document owns touch scrolling and browser chrome.
+        var height = Math.ceil(Math.max(child.document.body.getBoundingClientRect().height,
+          child.document.querySelector('.main')?.getBoundingClientRect().height || 0));
+        if (Math.abs(nextFrame.offsetHeight - height) > 1) nextFrame.style.height = Math.max(240, height) + 'px';
+        viewport();
         if (!refresh) refresh = setTimeout(function () { refresh = 0; notify(); }, 160);
       }
       function queueScroll() { if (!raf) raf = requestAnimationFrame(resize); }
@@ -166,42 +179,52 @@
       var forgetForm = trackFormEdits(child.document);
       child.addEventListener('load', queue, true);
       child.addEventListener('scroll', queueScroll, { passive: true });
-      var indicator = document.querySelector('[data-indicator="poll-status"]'), indicatorCopy;
-      function pollState() {
-        if (indicatorCopy) indicatorCopy.setAttribute('data-style', child.L?.Poll?.active() ? 'active' : 'inactive');
+      var indicatorRoot = document.querySelector('#indicators'), childIndicators = child.document.querySelector('#indicators');
+      function indicators() {
+        if (!indicatorRoot || !childIndicators) return;
+        indicatorRoot.replaceChildren(...Array.from(childIndicators.children, function (source) {
+          var copy = source.cloneNode(true);
+          copy.tabIndex = 0; copy.setAttribute('role', 'button');
+          copy.addEventListener('click', function () { source.click(); });
+          copy.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); source.click(); }
+          });
+          return copy;
+        }));
       }
-      if (indicator) {
-        indicatorCopy = indicator.cloneNode(true); indicator.replaceWith(indicatorCopy);
-        indicatorCopy.addEventListener('click', function () {
-          var poll = child.L?.Poll; if (!poll) return;
-          if (poll.active()) poll.stop(); else poll.start(); pollState();
-        });
-        child.document.addEventListener('poll-start', pollState); child.document.addEventListener('poll-stop', pollState);
-        child.document.addEventListener('luci-loaded', pollState); pollState();
+      if (childIndicators) {
+        indicatorObserver = new child.MutationObserver(indicators);
+        indicatorObserver.observe(childIndicators, { subtree: true, childList: true, characterData: true, attributes: true });
+        indicators();
       }
       observer = new child.ResizeObserver(queue); observer.observe(child.document.body);
       var mutations = new child.MutationObserver(queue);
       mutations.observe(child.document.body, { subtree: true, childList: true, characterData: true, attributes: true,
         attributeFilter: ['class','hidden','open','style'] });
       window.addEventListener('resize', queue);
+      window.addEventListener('scroll', viewport, { passive: true });
+      window.visualViewport?.addEventListener('resize', viewport);
+      window.visualViewport?.addEventListener('scroll', viewport);
       document.addEventListener('c2000-appearance-change', appearance);
       document.addEventListener('c2000-skin-change', appearance);
       dispose = function () {
-        observer.disconnect(); mutations.disconnect(); cancelAnimationFrame(raf); clearTimeout(refresh);
+        observer.disconnect(); mutations.disconnect(); indicatorObserver?.disconnect(); cancelAnimationFrame(raf); clearTimeout(refresh);
         window.removeEventListener('resize', queue);
+        window.removeEventListener('scroll', viewport);
+        window.visualViewport?.removeEventListener('resize', viewport);
+        window.visualViewport?.removeEventListener('scroll', viewport);
         document.removeEventListener('c2000-appearance-change', appearance);
         document.removeEventListener('c2000-skin-change', appearance);
         child.document.removeEventListener('click', intercept); child.document.removeEventListener('keydown', forwardKey);
         child.removeEventListener('load', queue, true);
         forgetForm();
         child.removeEventListener('scroll', queueScroll);
-        child.document.removeEventListener('poll-start', pollState); child.document.removeEventListener('poll-stop', pollState);
-        child.document.removeEventListener('luci-loaded', pollState);
         document.body.classList.remove('content-modal-open');
       };
       appearance(); queue();
       window.scrollTo({ top: 0, behavior: 'instant' });
-      if (task.pop) child.scrollTo({ top: scrolls.get(current) || 0, behavior: 'instant' });
+      resize();
+      if (task.pop) window.scrollTo({ top: scrolls.get(current) || 0, behavior: 'instant' });
       if (!reduced.matches) frame.animate([{ opacity: .7 }, { opacity: 1 }], { duration: 140 });
       notify();
     }

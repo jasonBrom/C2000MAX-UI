@@ -14,7 +14,8 @@ animateSpecular:false to retain highlights without continuous idle redraw,
 per-lens opacity to follow foreground panel transitions, embedded document SVG symbols and
 paint-state-aware SVG caching, bilinear clear-glass sampling without the extra five-tap blur,
 scene-only bootstrap, cached GPU capability probes, bounded same-origin native-view snapshots,
-and fixed-anchor / visual-viewport alignment.
+fixed-anchor / visual-viewport alignment, bounded local optical render targets,
+and a stable specular light phase for non-animated lenses.
 
 Visual assets:
 - c2000max-front.png: existing C2000MAX prototype asset derived from user-supplied references.

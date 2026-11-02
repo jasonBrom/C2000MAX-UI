@@ -12,8 +12,8 @@ const ready = (page, selector) => page.waitForFunction(s => document.querySelect
   await page.evaluate(() => { C2000Theme.setSkin('max'); C2000Theme.set('dark'); });
   for (const selector of ['.mobile-nav', '.header-menu', '.theme-toggle', '.account']) await ready(page, selector);
   await ready(page, '.liquid-selection');
-  assert.equal(await page.locator('.liquid-overlay canvas').count(), 1, 'five control and selection lenses share one canvas');
-  assert.equal(await page.evaluate(() => window.__liquidGLRenderer__._snapshotBlur), 8);
+  assert.equal(await page.locator('.liquid-overlay canvas').count(), 1, 'top controls share the base canvas');
+  assert.equal(await page.locator('.mobile-nav > canvas').count(), 1, 'navigation optics stay inside the fixed navigation surface');
   assert.equal(await page.locator('.mobile-nav .active .symbol-selected').evaluate(el => getComputedStyle(el).opacity), '1');
   assert.equal(await page.locator('.mobile-nav .active .symbol-outline').evaluate(el => getComputedStyle(el).opacity), '0');
   assert.deepEqual(await page.locator('svg.icon use').evaluateAll(uses => uses.map(use => use.getAttribute('href')).filter(href => !document.getElementById(href.slice(1)))), []);

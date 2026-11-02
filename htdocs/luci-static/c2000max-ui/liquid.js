@@ -1,7 +1,7 @@
 /* Shared live-content lenses for navigation; isolated wallpaper lenses for authentication. */
 (function () {
   'use strict';
-  var vendor = new URL('liquidGL.vendor.js?v=3.0.0-c2000.6', document.currentScript.src).href;
+  var vendor = new URL('liquidGL.vendor.js?v=3.0.0-c2000.7', document.currentScript.src).href;
   if (document.documentElement.hasAttribute('data-content-frame')) return;
   if (!document.getElementById('liquid-scene')) return;
   var loginPage = document.body.classList.contains('login-page');
@@ -68,7 +68,11 @@
   }
   function reset() { active.forEach(function (entry, panel) { remove(panel, entry); }); }
   function attach(panel) {
-    var local = loginPage || !!panel.closest('.modal,.ui-modal,dialog[open],#modal_overlay');
+    // Navigation optics live in the same fixed surface as their DOM labels.
+    // Android can move a fixed compositor layer before JS receives viewport events.
+    var navSurface = panel.closest('.mobile-nav');
+    if (navSurface) navSurface.setAttribute('data-liquid-surface', '');
+    var local = loginPage || !!navSurface || !!panel.closest('.modal,.ui-modal,dialog[open],#modal_overlay');
     var pane = document.createElement('div');
     pane.className = 'liquid-pane'; pane.id = 'liquid-pane-' + (++serial);
     pane.setAttribute('aria-hidden', 'true'); pane.setAttribute('data-liquid-ignore', '');
@@ -84,14 +88,14 @@
     var area = Math.max(1, document.body.scrollWidth * document.body.scrollHeight);
     try {
       entry.lens = window.liquidGL({
-        target: '#' + pane.id, snapshot: loginPage ? '#liquid-scene' : 'body', content: selection ? '.mobile-nav-items' : false, zIndex: 0,
+        target: '#' + pane.id, snapshot: loginPage ? '#liquid-scene' : 'body', content: false, zIndex: 0,
         bootstrap: !loginPage,
         resolution: loginPage ? Math.min(devicePixelRatio || 1, 1.25) : Math.max(.1, Math.min(1, Math.sqrt(2000000 / area))),
         // Shallow optics follow the upstream menu-bar lens; CSS supplies only a legibility wash.
         refraction: selection ? .016 * opticalScale : control ? .012 : .008,
         bevelDepth: selection ? .014 * opticalScale : control ? .024 : .018,
-        bevelWidth: selection ? .071 : control ? .10 : .075, aberration: selection ? .6 : .025,
-        frost: 0, snapshotBlur: loginPage ? 2 : 8, magnify: selection ? 1.05 : 1,
+        bevelWidth: selection ? .071 : control ? .10 : .075, aberration: selection ? .035 : .025,
+        frost: 0, snapshotBlur: loginPage ? 2 : 3, magnify: selection ? 1.035 : 1,
         tint: null, shadow: false, specular: true, animateSpecular: false, reveal: 'none', tilt: false,
         opacity: Number(getComputedStyle(panel).opacity),
         interaction: selection || control ? 'fluid' : 'none',
@@ -126,7 +130,7 @@
       var limit = Math.max(.1, Math.min(1, Math.sqrt(2000000 / Math.max(1, document.body.scrollWidth * document.body.scrollHeight))));
       active.forEach(function (entry) {
         var renderer = entry.lens?.renderer;
-        if (!entry.local && renderer && renderer._snapshotResolution > limit + .02) renderer._snapshotResolution = limit;
+        if (renderer && renderer._snapshotResolution > limit + .02) renderer._snapshotResolution = limit;
       });
     }
     var panels = Array.from(document.querySelectorAll(selectors));
@@ -178,7 +182,7 @@
       refreshTimer = 0;
       if (!permitted()) return;
       var renderers = new Set();
-      active.forEach(function (entry) { if (!entry.local && entry.lens?.renderer) renderers.add(entry.lens.renderer); });
+      active.forEach(function (entry) { if (entry.lens?.renderer) renderers.add(entry.lens.renderer); });
       renderers.forEach(function (renderer) { renderer.captureSnapshot(); });
     }, 500);
   }).observe(document.body, {
@@ -191,7 +195,7 @@
   document.addEventListener('transitionrun', trackGeometry);
   document.addEventListener('c2000-view-update', function () {
     var renderers = new Set();
-    active.forEach(function (entry) { if (!entry.local && entry.lens?.renderer) renderers.add(entry.lens.renderer); });
+    active.forEach(function (entry) { if (entry.lens?.renderer) renderers.add(entry.lens.renderer); });
     renderers.forEach(function (renderer) {
       if (renderer._capturing) renderer._captureGeneration = (renderer._captureGeneration || 0) + 1;
       renderer.captureSnapshot();

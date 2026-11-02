@@ -17,9 +17,11 @@ const base = 'http://127.0.0.1:4179/cgi-bin/luci/admin/status/c2000max';
       assert.ok(nav.width <= 440 && Math.abs(nav.x + nav.width / 2 - 316) < 1, 'wide-phone navigation remains compact and centred');
       assert.ok(await page.locator('.mobile-nav-items > a,.mobile-nav-items > button').evaluateAll(items => items.length === 5 && items.every(el => el.getBoundingClientRect().height >= 44)), 'five touch targets remain at least 44px');
 
+      await page.evaluate(() => { const id=document.querySelector('.mobile-nav').dataset.glassPane; window.opticalRenderer=__liquidGLRenderer__._sceneLenses.find(l=>l.el.id===id).renderer; });
+      await page.waitForFunction(() => !window.opticalRenderer._capturing);
       // A test-only swatch covers the content behind the real production navigation.
       await page.evaluate(async () => {
-        const r = window.__liquidGLRenderer__, nav = document.querySelector('.mobile-nav');
+        const r = window.opticalRenderer, nav = document.querySelector('.mobile-nav');
         const rect = nav.getBoundingClientRect();
         const swatch = document.createElement('div');
         swatch.id = 'optics-swatch';
@@ -44,7 +46,7 @@ const base = 'http://127.0.0.1:4179/cgi-bin/luci/admin/status/c2000max';
       const pink = await pixels();
       await page.evaluate(async () => {
         document.querySelector('#optics-swatch').style.background = '#267ce9';
-        await window.__liquidGLRenderer__.captureSnapshot();
+        await window.opticalRenderer.captureSnapshot();
       });
       const blue = await pixels();
       const centre = (10 * blue.width + Math.floor(blue.width / 2)) * 4;
@@ -53,14 +55,14 @@ const base = 'http://127.0.0.1:4179/cgi-bin/luci/admin/status/c2000max';
 
       await page.evaluate(async () => {
         document.querySelector('#optics-swatch').style.background = 'repeating-linear-gradient(90deg,#f62c69 0 30px,#2fc2f0 30px 60px,#ffd15c 60px 90px)';
-        const renderer = window.__liquidGLRenderer__;
+        const renderer = window.opticalRenderer;
         renderer.lenses.forEach(lens => { lens.options.specular = false; });
         await renderer.captureSnapshot();
       });
       const curved = await pixels();
       await page.evaluate(() => {
         const id = document.querySelector('.mobile-nav').dataset.glassPane;
-        const lens = window.__liquidGLRenderer__.lenses.find(lens => lens.el.id === id);
+        const lens = window.opticalRenderer.lenses.find(lens => lens.el.id === id);
         window.opticalSettings = { refraction: lens.options.refraction, bevelDepth: lens.options.bevelDepth, aberration: lens.options.aberration };
         Object.assign(lens.options, { refraction: 0, bevelDepth: 0, aberration: 0 });
       });
@@ -77,13 +79,13 @@ const base = 'http://127.0.0.1:4179/cgi-bin/luci/admin/status/c2000max';
       assert.ok(edgeDifference > 5 && centreDifference < edgeDifference * .4, `${engine}: optical distortion must concentrate at the edge (edge ${edgeDifference}, centre ${centreDifference})`);
       await page.evaluate(() => {
         const id = document.querySelector('.mobile-nav').dataset.glassPane;
-        Object.assign(window.__liquidGLRenderer__.lenses.find(lens => lens.el.id === id).options, window.opticalSettings);
+        Object.assign(window.opticalRenderer.lenses.find(lens => lens.el.id === id).options, window.opticalSettings);
       });
       await page.mouse.move(nav.x + 60, nav.y + nav.height / 2);
       await page.mouse.move(nav.x + nav.width - 60, nav.y + nav.height / 2, { steps: 12 });
       await page.waitForFunction(() => {
         const id = document.querySelector('.mobile-nav').dataset.glassPane;
-        const lens = window.__liquidGLRenderer__.lenses.find(lens => lens.el.id === id);
+        const lens = window.opticalRenderer.lenses.find(lens => lens.el.id === id);
         return lens._fluid?.inside && Math.hypot(lens._fluid.value[2], lens._fluid.value[3]) > .00001;
       }, null, { timeout: 2000 });
       await page.goto('http://127.0.0.1:4179/login' + (engine === 'auto' ? '' : '?liquidGL-engine=' + engine));

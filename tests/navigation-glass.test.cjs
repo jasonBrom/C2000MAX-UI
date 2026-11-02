@@ -17,7 +17,8 @@ async function centre(locator) {
     await page.evaluate(() => { C2000Theme.setSkin('max'); C2000Theme.set('light'); window.navDocumentToken = 'same-document'; });
     await ready(page);
     assert.equal(await page.locator('.liquid-overlay canvas').count(), 1, 'moving lens shares the base canvas');
-    assert.equal(await page.evaluate(() => __liquidGLRenderer__._contentLayers[0].el.className), 'mobile-nav-items');
+    assert.equal(await page.locator('.mobile-nav > canvas').count(), 1, 'navigation has one locally anchored optical canvas');
+    assert.equal(await page.locator('.mobile-nav-items').evaluate(e => getComputedStyle(e).maskImage), 'none', 'foreground labels must not be rasterised or masked');
     assert.equal(await page.locator('.mobile-nav-items input').count(), 0, 'only navigation content is supplied to the lens');
     const links = page.locator('.mobile-nav-items a'), lens = page.locator('.liquid-selection');
     const start = await lens.boundingBox();

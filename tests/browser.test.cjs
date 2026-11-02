@@ -52,8 +52,8 @@ fs.writeFileSync(path.join(out,'forms.html'),shell.split('<div id="view">')[0]+'
  await page.setViewportSize({width:390,height:844});await page.goto('http://127.0.0.1:4179/');
  await page.waitForFunction(()=>window.previewDashboard);
  await page.getByRole('button',{name:'打开完整菜单'}).click();assert.equal(await page.locator('#sidebar').getAttribute('aria-modal'),'true');
- await page.getByRole('searchbox',{name:'搜索菜单或插件'}).fill('QModem');assert.equal(await page.getByRole('link',{name:'QModem',exact:true}).isVisible(),false); // navigable child tree uses category
- assert.ok(await page.locator('.menu-category').filter({hasText:'QModem'}).isVisible());
+ await page.getByRole('searchbox',{name:'搜索菜单或插件'}).fill('QModem');assert.equal(await page.getByRole('link',{name:'QModem',exact:true}).isVisible(),true); // nested plugins open native page tabs
+ assert.equal(await page.locator('.menu-children details').count(),0);
  await page.keyboard.press('Escape'); // clear filter
  await page.keyboard.press('Escape');assert.equal(await page.locator('#sidebar').getAttribute('aria-modal'),null);
  await page.locator('[data-theme-toggle]').click();await page.getByRole('button',{name:'深色模式',exact:true}).click();assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');

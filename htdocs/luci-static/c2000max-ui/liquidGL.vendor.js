@@ -3724,6 +3724,7 @@
       gl.uniform1f(this.u.frost, p.frost);
       gl.uniform1f(this.u.radius, p.radius);
       gl.uniform1i(this.u.specular, p.specular);
+      gl.uniform1f(this.u.time, p.specularTime);
       gl.uniform1f(this.u.revealProgress, p.revealProgress);
       gl.uniform1i(this.u.revealType, p.revealType);
       gl.uniform1f(this.u.magnify, p.magnify);
@@ -4953,7 +4954,7 @@ fn fs() -> @location(0) vec4<f32> {
           data[o + 15] = p.bevelWidth;
           data[o + 16] = p.frost;
           data[o + 17] = p.radius;
-          data[o + 18] = this._frameTime;
+          data[o + 18] = p.specularTime;
           data[o + 19] = p.specular;
           data[o + 20] = p.revealProgress;
           data[o + 21] = p.revealType;
@@ -5731,8 +5732,9 @@ fn fs() -> @location(0) vec4<f32> {
     /* ----------------------------- */
     _resizeCanvas() {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
-      const viewportWidth = document.documentElement.clientWidth || innerWidth;
-      const viewportHeight = Math.max(
+      const surface = this._anchor.hasAttribute('data-liquid-surface') ? this._anchor.getBoundingClientRect() : null;
+      const viewportWidth = surface ? surface.width : document.documentElement.clientWidth || innerWidth;
+      const viewportHeight = surface ? surface.height : Math.max(
         document.documentElement.clientHeight,
         innerHeight,
       );
@@ -6416,11 +6418,12 @@ fn fs() -> @location(0) vec4<f32> {
       const backend = this.backend;
 
       const dprNow = Math.min(2, window.devicePixelRatio || 1);
+      const surface = this._anchor.hasAttribute('data-liquid-surface') ? this._anchor.getBoundingClientRect() : null;
       const bufW = Math.trunc(
-        (document.documentElement.clientWidth || innerWidth) * dprNow,
+        (surface ? surface.width : document.documentElement.clientWidth || innerWidth) * dprNow,
       );
       const bufH = Math.trunc(
-        Math.max(document.documentElement.clientHeight, innerHeight) * dprNow,
+        (surface ? surface.height : Math.max(document.documentElement.clientHeight, innerHeight)) * dprNow,
       );
       if (this.canvas.width !== bufW || this.canvas.height !== bufH) {
         this._resizeCanvas();
@@ -6863,6 +6866,8 @@ fn fs() -> @location(0) vec4<f32> {
         frost: lens.options.frost,
         radius: lens.radiusGl,
         specular: lens.options.specular ? 1 : 0,
+        // An idle lens must retain its light phase when another layer redraws.
+        specularTime: lens.options.animateSpecular === false ? 0 : (Date.now() - this.startTime) / 1000,
         revealProgress: (lens._revealProgress ?? 1.0) * unitOption(lens.options.opacity, 1),
         revealType: lens.revealTypeIndex || (unitOption(lens.options.opacity, 1) < 1 ? 1 : 0),
         magnify: mag,
