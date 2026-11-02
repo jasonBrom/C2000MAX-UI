@@ -9,6 +9,7 @@ html[data-content-frame], html[data-content-frame] body.c2000-ui {
   height: auto; min-height: 0; padding: 0; margin: 0; background: transparent !important;
 }
 html[data-content-frame] { overflow: hidden; }
+html[data-content-frame] body.c2000-ui { overflow: visible !important; }
 [data-content-frame] body > :is(.brand,.header-menu,.sidebar,.sidebar-backdrop,.mobile-nav,.skip-link),
 [data-content-frame] :is(.topbar,.landscape,.liquid-scene) { display: none !important; }
 [data-content-frame] body.c2000-ui .main { margin: 0; padding: 0; min-height: 0; height: auto; background: transparent; }

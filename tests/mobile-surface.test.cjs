@@ -47,6 +47,7 @@ const base = 'http://127.0.0.1:4179';
   const field = await child.getByLabel('时间格式').boundingBox(), actions = await child.locator('.cbi-page-actions').boundingBox();
   assert.ok(actions.y > field.y + field.height, 'save actions never cover the last form control');
   assert.equal(await child.locator('body').evaluate(e => getComputedStyle(e).backgroundColor), 'rgba(0, 0, 0, 0)', 'child page has no second opaque backdrop');
+  assert.equal(await child.locator('body').evaluate(e => getComputedStyle(e).overflowY), 'visible', 'Bootstrap must not reserve a second vertical scrollbar in the content body');
   await page.locator('.mobile-nav-items a').nth(1).hover({ force: true });
   assert.equal(await page.locator('.mobile-nav-items a').nth(1).evaluate(e => getComputedStyle(e).textDecorationLine), 'none');
   assert.deepEqual(errors, []);
