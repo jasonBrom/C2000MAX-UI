@@ -13,12 +13,17 @@
     return;
   }
   var vendor = document.createElement('script');
+  document.documentElement.dataset.navigationInstance = Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+  try { document.documentElement.dataset.navigationPrevious = sessionStorage.getItem('c2000-navigation-step') || ''; } catch (_) {}
   vendor.src = new URL('liquidGL.vendor.js?v=3.0.0-c2000.6', document.currentScript.src).href;
   vendor.async = true; vendor.dataset.liquidVendor = '';
   document.head.append(vendor);
-  document.addEventListener('DOMContentLoaded', function () {
+  var initialized = false;
+  function initialize() {
+    if (initialized) return;
     var content = document.querySelector('#maincontent');
     if (!content || document.body.classList.contains('navigation-preview')) return;
+    initialized = true;
     var frame = null, generation = 0, pending = null, dispose = null, stopped = false;
     var reduced = matchMedia('(prefers-reduced-motion: reduce)');
     var scrolls = new Map(), current = location.pathname + location.search + location.hash;
@@ -29,6 +34,12 @@
     var status = document.createElement('p');
     status.className = 'navigation-status'; status.setAttribute('role', 'status'); status.hidden = true;
     content.before(status);
+    document.documentElement.dataset.navigationReady = '';
+    function step(value) {
+      document.documentElement.dataset.navigationStep = value;
+      try { sessionStorage.setItem('c2000-navigation-step', value); } catch (_) {}
+    }
+    function nativePage(url, reason) { step('native:' + reason); location.assign(url); }
 
     function route(url) {
       try {
@@ -74,12 +85,13 @@
     }
     function open(url, options) {
       options ||= {};
-      var next = route(url); if (!next) { location.assign(url); return; }
+      var next = route(url); if (!next) { nativePage(url, 'route'); return; }
       var key = next.pathname + next.search + next.hash;
       if (key === current && !options.pop) return;
       scrolls.set(current, frame?.contentWindow.scrollY || scrollY);
       current = key;
       if (!options.pop) history.pushState({ c2000: true }, '', key);
+      step('loading');
       updateShell(next);
       if (document.body.classList.contains('menu-open')) window.C2000Menu?.close();
       status.textContent = '正在打开页面…'; status.hidden = false; content.setAttribute('aria-busy', 'true');
@@ -92,7 +104,7 @@
         if (id !== generation) return;
         try {
           if (!route(nextFrame.contentWindow.location.href) || nextFrame.contentDocument.body.classList.contains('login-page')) {
-            location.assign(nextFrame.contentWindow.location.href); return;
+            nativePage(nextFrame.contentWindow.location.href, 'authentication'); return;
           }
           if (nextFrame.contentDocument.documentElement.hasAttribute('data-content-frame')) {
             if (frame === nextFrame) {
@@ -104,7 +116,7 @@
             connect(nextFrame, nextFrame.contentWindow);
           } else {
             // Legacy/foreign themes keep their native top-level navigation.
-            location.assign(nextFrame.contentWindow.location.href);
+            nativePage(nextFrame.contentWindow.location.href, 'content-bridge');
           }
         } catch (_) { fail('页面暂时无法打开。'); }
       });
@@ -124,6 +136,7 @@
       content.removeAttribute('aria-busy'); status.hidden = true;
       document.title = child.document.title;
       document.body.classList.add('has-content-frame');
+      step('connected');
       var observer, raf = 0, refresh = 0;
       function modalState() {
         var modal = child.document.body.classList.contains('modal-overlay-active') || !!child.document.querySelector('dialog[open]');
@@ -262,5 +275,7 @@
       }
     });
     window.C2000Navigation = Object.freeze({ open: open, connect: connect });
-  }, { once: true });
+  }
+  window.C2000StartNavigation = initialize;
+  document.addEventListener('DOMContentLoaded', initialize, { once: true });
 })();

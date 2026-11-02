@@ -85,6 +85,16 @@ async function content(page,title) {
   assert.deepEqual(unwantedDialogs,[],'automatic native select initialization must never be mistaken for user edits');
   assert.deepEqual(errors,[]);
   await context.close();
+  const early=await browser.newPage({viewport:{width:390,height:844}});
+  let releaseBoot; const bootHeld=new Promise(resolve=>{releaseBoot=resolve;});
+  await early.route('**/liquid.js?*',async route=>{await bootHeld;await route.continue();});
+  await early.goto(base+home,{waitUntil:'commit'});
+  await early.waitForFunction(()=>document.querySelector('.mobile-nav')?.classList.contains('has-glass-selection'));
+  assert.equal(await early.locator('html').getAttribute('data-navigation-ready'),'','router must be ready before the deferred glass script');
+  await early.evaluate(()=>{window.earlyNavigationToken='same-document';});
+  await early.locator('.mobile-nav-items a').nth(2).click();
+  assert.equal(await early.evaluate(()=>window.earlyNavigationToken),'same-document','an immediate click must not reload while deferred scripts are pending');
+  releaseBoot(); await content(early,'无线'); await early.close();
   console.log('PASS: glass before blocked assets, persistent shell/canvas, touch without outline, native forms/modals, history, private bounded frame snapshots and viewport alignment');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
