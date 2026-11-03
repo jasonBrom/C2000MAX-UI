@@ -5812,8 +5812,11 @@ fn fs() -> @location(0) vec4<f32> {
               return true;
             }
             return (
+              // A scoped snapshot may live inside an ignored functional layer.
+              // Only exclusions inside its own subtree apply to that snapshot.
               element.hasAttribute("data-liquid-ignore") ||
-              element.closest("[data-liquid-ignore]")
+              (element.closest("[data-liquid-ignore]") &&
+                this.snapshotTarget.contains(element.closest("[data-liquid-ignore]")))
             );
           };
 
@@ -6232,7 +6235,10 @@ fn fs() -> @location(0) vec4<f32> {
             renderer.canvas.style.visibility = active ? "visible" : "hidden";
           }
           if (!active) continue;
-          if (renderer._needsFrame(lower)) renderer._renderFrame(lower);
+          // Scoped navigation ink and page backdrops are separate optical scenes.
+          // Compositing a page lens over the scoped snapshot would erase its text.
+          const sceneLower = lower.filter((candidate) => candidate.snapshotTarget === renderer.snapshotTarget);
+          if (renderer._needsFrame(sceneLower)) renderer._renderFrame(sceneLower);
           lower.push(renderer);
         }
       } finally {
@@ -7697,7 +7703,8 @@ fn fs() -> @location(0) vec4<f32> {
       }
       if (!el.getBoundingClientRect || !this.snapshotTarget.contains(el))
         return;
-      if (el.closest && el.closest("[data-liquid-ignore]")) return;
+      const excluded = el.closest?.("[data-liquid-ignore]");
+      if (excluded && this.snapshotTarget.contains(excluded)) return;
       if (this._dynamicNodes.some((n) => n.el === el)) return;
 
       this._dynamicNodes = this._dynamicNodes.filter((n) => !el.contains(n.el));
@@ -7912,11 +7919,8 @@ fn fs() -> @location(0) vec4<f32> {
 
     /* ----------------------------- */
     _isIgnored(el) {
-      return !!(
-        el &&
-        typeof el.closest === "function" &&
-        el.closest("[data-liquid-ignore]")
-      );
+      const excluded = el?.closest?.("[data-liquid-ignore]");
+      return !!(excluded && this.snapshotTarget.contains(excluded));
     }
   }
 

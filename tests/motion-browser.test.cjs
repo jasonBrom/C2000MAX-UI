@@ -13,7 +13,7 @@ const ready = (page, selector) => page.waitForFunction(s => document.querySelect
   for (const selector of ['.mobile-nav', '.header-menu', '.theme-toggle', '.account']) await ready(page, selector);
   await ready(page, '.liquid-selection');
   assert.equal(await page.locator('.liquid-overlay canvas').count(), 2, 'top controls share the base canvas and the drawer is prepared');
-  assert.equal(await page.locator('.mobile-nav > canvas').count(), 1, 'navigation optics stay inside the fixed navigation surface');
+  assert.equal(await page.locator('.mobile-nav > canvas').count(), 2, 'background and clear ink optics stay inside the fixed navigation surface');
   assert.equal(await page.locator('.mobile-nav .active .symbol-selected').evaluate(el => getComputedStyle(el).opacity), '1');
   assert.equal(await page.locator('.mobile-nav .active .symbol-outline').evaluate(el => getComputedStyle(el).opacity), '0');
   assert.deepEqual(await page.locator('svg.icon use').evaluateAll(uses => uses.map(use => use.getAttribute('href')).filter(href => !document.getElementById(href.slice(1)))), []);

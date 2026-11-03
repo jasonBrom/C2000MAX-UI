@@ -16,7 +16,8 @@ paint-state-aware SVG caching, bilinear clear-glass sampling without the extra f
 scene-only bootstrap, cached GPU capability probes, bounded same-origin native-view snapshots,
 fixed-anchor / visual-viewport alignment, bounded local optical render targets,
 a stable specular light phase for non-animated lenses, and optional text-free
-backdrop snapshots to prevent fixed-label ghosts while scrolling.
+backdrop snapshots to prevent fixed-label ghosts while scrolling, scoped navigation-ink
+snapshots with scene-isolated stacking, and ancestor exclusions relative to the snapshot root.
 
 Visual assets:
 - c2000max-front.png: existing C2000MAX prototype asset derived from user-supplied references.

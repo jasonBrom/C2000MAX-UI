@@ -5,22 +5,25 @@
 .c2000-view-frame[data-route-pending] { position: absolute; visibility: hidden; pointer-events: none; }
 .has-content-frame .main-footer { display: none; }
 body.content-modal-open { overflow: hidden; }
+/* The native modal scrim must cover the shell navigation as well as its own view. */
+body.content-modal-open .c2000-view-frame { position: relative; z-index: 60; }
 body.has-content-frame { overflow-x: clip; }
 html[data-content-frame], html[data-content-frame] body.c2000-ui {
   height: auto; min-height: 0; padding: 0; margin: 0; background: transparent !important;
 }
 html[data-content-frame] { overflow: hidden; }
 html[data-content-frame] body.c2000-ui { overflow: visible !important; }
+/* LuCI's body.modal-overlay-active height:100vh must not resize an auto-height frame. */
+html[data-content-frame] body.c2000-ui.modal-overlay-active { height: auto; min-height: 0; }
 [data-content-frame] body > :is(.brand,.header-menu,.sidebar,.sidebar-backdrop,.mobile-nav,.skip-link),
 [data-content-frame] :is(.topbar,.landscape,.liquid-scene) { display: none !important; }
 [data-content-frame] body.c2000-ui .main { margin: 0; padding: 0 var(--shell-inset-right, 0px) 0 var(--shell-inset-left, 0px); min-height: 0; height: auto; background: transparent; }
 [data-content-frame] .luci-content { margin: 0; }
 [data-content-frame] .main-footer { margin-bottom: 0; }
-[data-content-frame] #modal_overlay {
+html[data-content-frame] body.c2000-ui #modal_overlay {
   position: absolute; inset: var(--frame-visible-top, 0px) 0 auto;
   height: var(--frame-visible-height, 100dvh); box-sizing: border-box;
 }
-[data-content-frame] #modal_overlay > .modal { max-height: calc(var(--frame-visible-height, 100dvh) - 32px); }
 [data-content-frame] dialog[open] {
   position: absolute; inset: calc(var(--frame-visible-top, 0px) + 16px) 0 auto;
   margin: 0 auto; max-height: calc(var(--frame-visible-height, 100dvh) - 32px);

@@ -1,7 +1,7 @@
 /* Shared live-content lenses for navigation; isolated wallpaper lenses for authentication. */
 (function () {
   'use strict';
-  var vendor = new URL('liquidGL.vendor.js?v=3.0.0-c2000.8', document.currentScript.src).href;
+  var vendor = new URL('liquidGL.vendor.js?v=3.0.0-c2000.9', document.currentScript.src).href;
   if (document.documentElement.hasAttribute('data-content-frame')) return;
   if (!document.getElementById('liquid-scene')) return;
   var loginPage = document.body.classList.contains('login-page');
@@ -9,7 +9,7 @@
   var transparency = matchMedia('(prefers-reduced-transparency: reduce)');
   var forced = matchMedia('(forced-colors: active)');
   var active = new Map(), overlays = new Map(), serial = 0, pending = 0, refreshTimer = 0, geometryRaf = 0, loading = false, failed = false;
-  var selectors = '.login-card,.login-submit,.mobile-nav,.liquid-selection,.sidebar,.header-menu,.theme-toggle,.account,.account-menu,.theme-control,.modal,.ui-modal,dialog[open],.cbi-page-actions,.cbi-dropdown > ul.dropdown,.ui-dropdown-panel,.toast';
+  var selectors = '.login-card,.mobile-nav,.liquid-selection,.sidebar,.header-menu,.theme-toggle,.account,.account-menu,.theme-control,.ui-modal,dialog[open],.cbi-page-actions,.cbi-dropdown > ul.dropdown,.ui-dropdown-panel,.toast';
   var appearance = palette();
   function palette() { return document.documentElement.dataset.theme + ':' + document.documentElement.dataset.skin; }
   function permitted() {
@@ -45,11 +45,6 @@
       entry.lens.options.opacity = Number(style.opacity);
       if (panel.closest('.mobile-nav')) entry.lens.options.interaction = panel.closest('.mobile-nav').matches('.is-nav-pressed,.is-dragging') ? 'fluid' : 'none';
     }
-    if (entry.host) {
-      var origin = entry.host.getBoundingClientRect();
-      Object.assign(entry.pane.style, { left: rect.left-origin.left+'px', top: rect.top-origin.top+'px', width:rect.width+'px', height:rect.height+'px', borderRadius:style.borderRadius });
-      return;
-    }
     if (entry.local) return;
     Object.assign(entry.pane.style, {
       left: rect.left + 'px', top: rect.top + 'px', width: rect.width + 'px', height: rect.height + 'px',
@@ -84,29 +79,29 @@
     var pane = document.createElement('div');
     pane.className = 'liquid-pane'; pane.id = 'liquid-pane-' + (++serial);
     pane.setAttribute('aria-hidden', 'true'); pane.setAttribute('data-liquid-ignore', '');
-    var host = loginPage && panel.matches('.login-submit') ? active.get(document.querySelector('.login-card'))?.pane : null;
-    var entry = { pane: pane, lens: null, host: host, local: local, layer: layerFor(panel), disposed: false };
+    var entry = { pane: pane, lens: null, local: local, layer: layerFor(panel), disposed: false };
     active.set(panel, entry);
     panel.setAttribute('data-glass-pane', pane.id); panel.setAttribute('data-glass-state', 'loading');
-    if (host) host.append(pane); else if (local) panel.prepend(pane); else getOverlay(entry.layer).append(pane);
+    if (local) panel.prepend(pane); else getOverlay(entry.layer).append(pane);
     sync(panel, entry);
     var compact = panel.matches('.header-menu,.theme-toggle,.account');
-    var control = compact || panel.matches('.mobile-nav,.login-submit');
+    var control = compact || panel.matches('.mobile-nav');
     var selection = panel.matches('.liquid-selection');
-    var opticalScale = Math.min(1, innerHeight / Math.max(innerHeight, document.body.scrollHeight));
+    var opticalScale = selection ? 1 : Math.min(1, innerHeight / Math.max(innerHeight, document.body.scrollHeight));
     var area = Math.max(1, document.body.scrollWidth * document.body.scrollHeight);
     try {
       entry.lens = window.liquidGL({
-        target: '#' + pane.id, snapshot: loginPage ? '#liquid-scene' : 'body', content: false, zIndex: 0,
-        bootstrap: !loginPage,
-        snapshotText: loginPage,
-        resolution: loginPage ? Math.min(devicePixelRatio || 1, 1.25) : Math.max(.1, Math.min(1, Math.sqrt(2000000 / area))),
+        target: '#' + pane.id, snapshot: selection ? '.mobile-nav-items' : loginPage ? '#liquid-scene' : 'body', content: false, zIndex: selection ? 4 : 0,
+        bootstrap: !loginPage && !selection,
+        // Only the isolated navigation snapshot includes its own labels. Page text stays excluded.
+        snapshotText: loginPage || selection,
+        resolution: selection ? Math.min(devicePixelRatio || 1, 2) : loginPage ? Math.min(devicePixelRatio || 1, 1.25) : Math.max(.1, Math.min(1, Math.sqrt(2000000 / area))),
         // Shallow optics follow the upstream menu-bar lens; CSS supplies only a legibility wash.
         refraction: (selection ? .016 : control ? .012 : .008) * opticalScale,
         bevelDepth: (selection ? .014 : control ? .024 : .018) * opticalScale,
-        bevelWidth: selection ? .071 : control ? .10 : .075, aberration: selection ? .035 : .025,
-        frost: 0, snapshotBlur: loginPage ? 2 : 3, magnify: selection ? 1.035 : 1,
-        tint: null, shadow: false, specular: true, animateSpecular: false, reveal: 'none', tilt: false,
+        bevelWidth: selection ? .071 : control ? .10 : .075, aberration: selection ? .15 : .025,
+        frost: 0, snapshotBlur: selection ? 0 : loginPage ? 2 : 3, magnify: selection ? 1.04 : 1,
+        tint: selection ? getComputedStyle(panel).getPropertyValue('--nav-lens-tint').trim() : null, shadow: false, specular: true, animateSpecular: false, reveal: 'none', tilt: false,
         opacity: Number(getComputedStyle(panel).opacity),
         interaction: 'none',
         interactionStrength: selection ? .5 : compact ? .28 : .22,
@@ -116,6 +111,10 @@
           if (!entry.disposed) panel.setAttribute('data-glass-state', 'gpu');
         } }
       });
+      if (selection && entry.lens?.renderer) {
+        entry.lens.renderer.canvas.setAttribute('data-nav-lens', '');
+        entry.lens.renderer.addDynamicElement(Array.from(navSurface.querySelector('.mobile-nav-items').children));
+      }
       if (!entry.lens || !entry.lens.renderer) {
         if (entry.lens) entry.lens.destroy();
         entry.lens = null; panel.setAttribute('data-glass-state', 'css');
@@ -140,7 +139,7 @@
       var limit = Math.max(.1, Math.min(1, Math.sqrt(2000000 / Math.max(1, document.body.scrollWidth * document.body.scrollHeight))));
       active.forEach(function (entry) {
         var renderer = entry.lens?.renderer;
-        if (renderer && renderer._snapshotResolution > limit + .02) renderer._snapshotResolution = limit;
+        if (renderer?.snapshotTarget === document.body && renderer._snapshotResolution > limit + .02) renderer._snapshotResolution = limit;
       });
     }
     var panels = Array.from(document.querySelectorAll(selectors));

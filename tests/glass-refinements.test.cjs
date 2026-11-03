@@ -36,7 +36,7 @@ const ready=(page,selector)=>page.waitForFunction(s=>document.querySelector(s)?.
   const selected=await lens.boundingBox();
   await page.locator('.mobile-nav-items a').nth(2).hover();await page.waitForTimeout(200);
   assert.ok(Math.abs((await lens.boundingBox()).x-selected.x)<1,'ordinary hover does not pull the selected capsule');
-  assert.equal(await page.locator('.mobile-nav').evaluate(e=>getComputedStyle(e,'::before').zIndex),'4','the optical rim sits above native labels');
+  assert.equal(await page.locator('.mobile-nav > canvas[data-nav-lens]').evaluate(e=>getComputedStyle(e).zIndex),'4','the isolated navigation lens sits above its own ink');
   assert.equal(await page.locator('.mobile-nav-items a').nth(2).evaluate(e=>getComputedStyle(e).outlineStyle),'none');
   // Compare actual transmitted pixels with and without high contrast text underneath.
   await page.evaluate(()=>{const id=document.querySelector('.mobile-nav').dataset.glassPane;window.testRenderer=__liquidGLRenderer__._sceneLenses.find(l=>l.el.id===id).renderer;});
@@ -55,11 +55,11 @@ const ready=(page,selector)=>page.waitForFunction(s=>document.querySelector(s)?.
   },'data:image/png;base64,'+shot.toString('base64'));
   assert.ok(magenta<5,'background text cannot leave coloured ghost glyphs in the glass');
   await page.screenshot({path:'build/preview/glass-no-ghosts.png'});
-  await page.goto(base+'/login');await ready(page,'.login-card');await ready(page,'.login-submit');
+  await page.goto(base+'/login');await ready(page,'.login-card');assert.equal(await page.locator('.login-submit').getAttribute('data-glass'),null,'the primary action uses a legible accent fill');
   await page.locator('[data-theme-toggle]').click();await ready(page,'.theme-control');
   assert.ok(await page.locator('.theme-control').evaluate(e=>getComputedStyle(e).getPropertyValue('--glass-wash').includes('.8')),'login appearance popup has its own legibility wash');
   await page.waitForTimeout(300); await page.screenshot({path:'build/preview/glass-login-refined.png'});
   assert.deepEqual(errors,[]);await page.close();
-  console.log('PASS: full-width native breakpoints, restored desktop column, plugin headings/tabs, prepared drawer, anchored hover, optical cap, ghost-free text and login button');
+  console.log('PASS: full-width native breakpoints, restored desktop column, plugin headings/tabs, prepared drawer, anchored hover, isolated optical foreground, ghost-free page text and prominent login action');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -15,7 +15,7 @@
   var vendor = document.createElement('script');
   document.documentElement.dataset.navigationInstance = Date.now().toString(36) + Math.random().toString(36).slice(2,8);
   try { document.documentElement.dataset.navigationPrevious = sessionStorage.getItem('c2000-navigation-step') || ''; } catch (_) {}
-  vendor.src = new URL('liquidGL.vendor.js?v=3.0.0-c2000.8', document.currentScript.src).href;
+  vendor.src = new URL('liquidGL.vendor.js?v=3.0.0-c2000.9', document.currentScript.src).href;
   vendor.async = true; vendor.dataset.liquidVendor = '';
   document.head.append(vendor);
   var initialized = false;
@@ -137,7 +137,7 @@
       document.title = child.document.title;
       document.body.classList.add('has-content-frame');
       step('connected');
-      var observer, indicatorObserver, raf = 0, refresh = 0;
+      var observer, indicatorObserver, raf = 0, refresh = 0, contentModal = false;
       function viewport() {
         var bounds = nextFrame.getBoundingClientRect(), vv = window.visualViewport;
         var top = Math.max(0, (vv?.offsetTop || 0) - bounds.top);
@@ -147,7 +147,7 @@
         style.setProperty('--frame-visible-height', height + 'px');
       }
       function modalState() {
-        var modal = child.document.body.classList.contains('modal-overlay-active') || !!child.document.querySelector('dialog[open]');
+        var modal = contentModal = child.document.body.classList.contains('modal-overlay-active') || !!child.document.querySelector('dialog[open]');
         document.body.classList.toggle('content-modal-open', modal);
         document.querySelectorAll('.brand,.header-menu,.topbar,.mobile-nav').forEach(function (element) {
           element.inert = modal || (!element.matches('.topbar') && document.body.classList.contains('menu-open'));
@@ -170,11 +170,18 @@
         // The outer document owns touch scrolling and browser chrome.
         var height = Math.ceil(Math.max(child.document.body.getBoundingClientRect().height,
           child.document.querySelector('.main')?.getBoundingClientRect().height || 0));
+        // Near the page footer, the visible modal can extend past the original
+        // iframe bottom. Reserve that visible area so touch targets are not clipped.
+        if (contentModal) {
+          var vv = window.visualViewport, bounds = nextFrame.getBoundingClientRect();
+          height = Math.max(height, Math.ceil(Math.max(0,(vv?.offsetTop || 0)-bounds.top)+(vv?.height || innerHeight)));
+        }
         if (Math.abs(nextFrame.offsetHeight - height) > 1) nextFrame.style.height = Math.max(240, height) + 'px';
         viewport();
         if (!refresh) refresh = setTimeout(function () { refresh = 0; notify(); }, 160);
       }
       function queueScroll() { if (!raf) raf = requestAnimationFrame(resize); }
+      function viewportChanged() { viewport(); if (contentModal) queueScroll(); }
       function queue() { modalState(); nextFrame._liquidFrameVersion = (nextFrame._liquidFrameVersion || 0) + 1; queueScroll(); }
       function appearance() {
         var theme = window.C2000Theme;
@@ -211,16 +218,16 @@
         attributeFilter: ['class','hidden','open','style'] });
       window.addEventListener('resize', queue);
       window.addEventListener('scroll', viewport, { passive: true });
-      window.visualViewport?.addEventListener('resize', viewport);
-      window.visualViewport?.addEventListener('scroll', viewport);
+      window.visualViewport?.addEventListener('resize', viewportChanged);
+      window.visualViewport?.addEventListener('scroll', viewportChanged);
       document.addEventListener('c2000-appearance-change', appearance);
       document.addEventListener('c2000-skin-change', appearance);
       dispose = function () {
         observer.disconnect(); mutations.disconnect(); indicatorObserver?.disconnect(); cancelAnimationFrame(raf); clearTimeout(refresh);
         window.removeEventListener('resize', queue);
         window.removeEventListener('scroll', viewport);
-        window.visualViewport?.removeEventListener('resize', viewport);
-        window.visualViewport?.removeEventListener('scroll', viewport);
+        window.visualViewport?.removeEventListener('resize', viewportChanged);
+        window.visualViewport?.removeEventListener('scroll', viewportChanged);
         document.removeEventListener('c2000-appearance-change', appearance);
         document.removeEventListener('c2000-skin-change', appearance);
         child.document.removeEventListener('click', intercept); child.document.removeEventListener('keydown', forwardKey);
